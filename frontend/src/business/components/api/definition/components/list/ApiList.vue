@@ -116,13 +116,25 @@
           prop="tags"
           :field="item"
           :fields-width="fieldsWidth"
-          min-width="100px"
+          min-width="80px"
           :label="$t('commons.tag')">
           <template v-slot:default="scope">
             <ms-tag v-for="(itemName,index)  in scope.row.tags" :key="index" type="success" effect="plain"
                     :show-tooltip="true" :content="itemName"
                     style="margin-left: 0px; margin-right: 2px"/>
             <span/>
+          </template>
+        </ms-table-column>
+
+        <ms-table-column
+          :label="$t('project.version.name')"
+          :field="item"
+          :fields-width="fieldsWidth"
+          :filters="versionFilters"
+          min-width="100px"
+          prop="versionId">
+          <template v-slot:default="scope">
+            <span>{{ scope.row.versionName }}</span>
           </template>
         </ms-table-column>
 
@@ -185,7 +197,8 @@
     </div>
     <ms-api-case-list @refresh="initTable" @showExecResult="showExecResult" :currentApi="selectApi" ref="caseList"/>
     <!--批量编辑-->
-    <ms-batch-edit ref="batchEdit" @batchEdit="batchEdit" :data-count="$refs.table ? $refs.table.selectDataCounts : 0" :typeArr="typeArr" :value-arr="valueArr"/>
+    <ms-batch-edit ref="batchEdit" @batchEdit="batchEdit" :data-count="$refs.table ? $refs.table.selectDataCounts : 0"
+                   :typeArr="typeArr" :value-arr="valueArr"/>
     <!--高级搜索-->
     <ms-table-adv-search-bar :condition.sync="condition" :showLink="false" ref="searchBar" @search="search"/>
     <case-batch-move @refresh="initTable" @moveSave="moveSave" ref="testCaseBatchMove"/>
@@ -211,7 +224,7 @@ import MsTableColumn from "@/business/components/common/components/table/MsTable
 import MsBottomContainer from "../BottomContainer";
 import MsBatchEdit from "../basis/BatchEdit";
 import {API_METHOD_COLOUR, API_STATUS, DUBBO_METHOD, REQ_METHOD, SQL_METHOD, TCP_METHOD} from "../../model/JsonData";
-import {downloadFile, getCurrentProjectID, getUUID} from "@/common/js/utils";
+import {downloadFile, getCurrentProjectID, getUUID, hasLicense} from "@/common/js/utils";
 import {API_LIST} from '@/common/js/constants';
 import MsTableHeaderSelectPopover from "@/business/components/common/components/table/MsTableHeaderSelectPopover";
 import ApiStatus from "@/business/components/api/definition/components/list/ApiStatus";
@@ -220,8 +233,11 @@ import {API_DEFINITION_CONFIGS} from "@/business/components/common/components/se
 import MsTipButton from "@/business/components/common/components/MsTipButton";
 import CaseBatchMove from "@/business/components/api/definition/components/basis/BatchMove";
 import {
-  initCondition,
-  getCustomTableHeader, getCustomTableWidth, buildBatchParam, getLastTableSortField
+  buildBatchParam,
+  getCustomTableHeader,
+  getCustomTableWidth,
+  getLastTableSortField,
+  initCondition
 } from "@/common/js/tableUtils";
 import HeaderLabelOperate from "@/business/components/common/head/HeaderLabelOperate";
 import {Body} from "@/business/components/api/definition/model/ApiTestModel";
@@ -383,6 +399,7 @@ export default {
         {text: 'TCP', value: 'TCP'},
       ],
       userFilters: [],
+      versionFilters: [],
       valueArr: {
         status: API_STATUS,
         method: REQ_METHOD,
@@ -464,6 +481,7 @@ export default {
 
     this.initTable();
     this.getMaintainerOptions();
+    this.getVersionOptions();
 
     // 通知过来的数据跳转到编辑
     if (this.$route.query.resourceId) {
@@ -597,6 +615,15 @@ export default {
         });
       });
     },
+    getVersionOptions() {
+      if (hasLicense()) {
+        this.$get('/project/version/get-project-versions/' + getCurrentProjectID(), response => {
+          this.versionFilters = response.data.map(u => {
+            return {text: u.name, value: u.id};
+          });
+        });
+      }
+    },
     enterSearch() {
       this.$refs.inputVal.blur();
       this.search();
@@ -615,7 +642,7 @@ export default {
     handleCopy(row) {
       let obj = JSON.parse(JSON.stringify(row));
       obj.isCopy = true;
-      obj.id =getUUID();
+      obj.id = getUUID();
       this.$emit('editApi', obj);
     },
     runApi(row) {
@@ -736,7 +763,7 @@ export default {
       });
     },
     handleTestCase(api) {
-      this.$emit("handleTestCase", api)
+      this.$emit("handleTestCase", api);
       // this.$refs.caseList.open(this.selectApi);
     },
     handleDelete(api) {
@@ -878,6 +905,7 @@ export default {
   max-width: 100%;
   padding-right: 100%;
 }
+
 /* /deep/ .el-table__fixed-body-wrapper {
   top: 60px !important;
 } */

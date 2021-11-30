@@ -127,6 +127,20 @@ public class ProjectService {
         // 创建新项目检查当前用户 last_project_id
         extUserMapper.updateLastProjectIdIfNull(project.getId(), SessionUtils.getUserId());
 
+        ProjectVersionService projectVersionService = CommonBeanFactory.getBean(ProjectVersionService.class);
+        if (projectVersionService != null) {
+            ProjectVersion projectVersion = new ProjectVersion();
+            projectVersion.setId(UUID.randomUUID().toString());
+            projectVersion.setName("v1.0.0");
+            projectVersion.setProjectId(project.getId());
+            projectVersion.setCreateTime(System.currentTimeMillis());
+            projectVersion.setCreateTime(System.currentTimeMillis());
+            projectVersion.setStartTime(System.currentTimeMillis());
+            projectVersion.setPublishTime(System.currentTimeMillis());
+            projectVersion.setLatest(true);
+            projectVersion.setStatus("open");
+            projectVersionService.addProjectVersion(projectVersion);
+        }
         return project;
     }
 

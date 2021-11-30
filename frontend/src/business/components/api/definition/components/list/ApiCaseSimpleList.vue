@@ -138,6 +138,18 @@
             </template>
           </ms-table-column>
 
+           <ms-table-column
+             :label="$t('project.version.name')"
+             :field="item"
+             :fields-width="fieldsWidth"
+             :filters="versionFilters"
+             min-width="100px"
+             prop="versionId">
+          <template v-slot:default="scope">
+            <span>{{ scope.row.versionName }}</span>
+          </template>
+        </ms-table-column>
+
           <ms-table-column
             prop="environment"
             :field="item"
@@ -234,7 +246,7 @@ import ShowMoreBtn from "../../../../track/case/components/ShowMoreBtn";
 import MsBatchEdit from "../basis/BatchEdit";
 import {API_METHOD_COLOUR, CASE_PRIORITY, DUBBO_METHOD, REQ_METHOD, SQL_METHOD, TCP_METHOD} from "../../model/JsonData";
 
-import {getBodyUploadFiles, getCurrentProjectID, getUUID, strMapToObj} from "@/common/js/utils";
+import {getBodyUploadFiles, getCurrentProjectID, getUUID, hasLicense, strMapToObj} from "@/common/js/utils";
 import PriorityTableItem from "../../../../track/common/tableItems/planview/PriorityTableItem";
 import MsApiCaseTableExtendBtns from "../reference/ApiCaseTableExtendBtns";
 import MsReferenceView from "../reference/ReferenceView";
@@ -391,6 +403,7 @@ export default {
       resVisible: false,
       response: {},
       timeoutIndex: 0,
+      versionFilters: [],
     };
   },
   props: {
@@ -439,6 +452,7 @@ export default {
         this.handleTestCase(response.data);
       });
     }
+    this.getVersionOptions();
   },
   watch: {
     selectNodeIds() {
@@ -1136,6 +1150,15 @@ export default {
       }, erro => {
         this.$emit('runRefresh', {});
       });
+    },
+    getVersionOptions() {
+      if (hasLicense()) {
+        this.$get('/project/version/get-project-versions/' + getCurrentProjectID(), response => {
+          this.versionFilters = response.data.map(u => {
+            return {text: u.name, value: u.id};
+          });
+        });
+      }
     },
   },
 };

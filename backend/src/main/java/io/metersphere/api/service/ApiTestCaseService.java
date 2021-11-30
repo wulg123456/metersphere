@@ -34,7 +34,6 @@ import io.metersphere.log.vo.OperatingLogDetails;
 import io.metersphere.log.vo.api.DefinitionReference;
 import io.metersphere.plugin.core.MsTestElement;
 import io.metersphere.service.FileService;
-import io.metersphere.service.QuotaService;
 import io.metersphere.service.UserService;
 import io.metersphere.track.request.testcase.ApiCaseRelevanceRequest;
 import io.metersphere.track.service.TestPlanService;
@@ -361,12 +360,13 @@ public class ApiTestCaseService {
             test.setUpdateTime(System.currentTimeMillis());
             test.setDescription(request.getDescription());
             test.setVersion(request.getVersion() == null ? 0 : request.getVersion() + 1);
+            test.setVersionId(request.getVersionId());
             if (StringUtils.equals("[]", request.getTags())) {
                 test.setTags("");
             } else {
                 test.setTags(request.getTags());
             }
-            apiTestCaseMapper.updateByPrimaryKeySelective(test);
+            apiTestCaseMapper.updateByPrimaryKey(test);
             saveFollows(test.getId(), request.getFollows());
         }
         return test;
@@ -415,6 +415,7 @@ public class ApiTestCaseService {
         test.setDescription(request.getDescription());
         test.setNum(getNextNum(request.getApiDefinitionId()));
         test.setOrder(ServiceUtils.getNextOrder(request.getProjectId(), extApiTestCaseMapper::getLastOrder));
+        test.setVersionId(request.getVersionId());
         if (StringUtils.equals("[]", request.getTags())) {
             test.setTags("");
         } else {

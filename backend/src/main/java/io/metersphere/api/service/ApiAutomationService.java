@@ -46,11 +46,7 @@ import io.metersphere.log.vo.DetailColumn;
 import io.metersphere.log.vo.OperatingLogDetails;
 import io.metersphere.log.vo.api.AutomationReference;
 import io.metersphere.plugin.core.MsTestElement;
-import io.metersphere.service.EnvironmentGroupProjectService;
-import io.metersphere.service.QuotaService;
-import io.metersphere.service.RelationshipEdgeService;
-import io.metersphere.service.ScheduleService;
-import io.metersphere.service.SystemParameterService;
+import io.metersphere.service.*;
 import io.metersphere.track.dto.TestPlanDTO;
 import io.metersphere.track.request.testcase.ApiCaseRelevanceRequest;
 import io.metersphere.track.request.testcase.QueryTestPlanRequest;
@@ -156,6 +152,8 @@ public class ApiAutomationService {
     private TestResourcePoolMapper testResourcePoolMapper;
     @Resource
     private EnvironmentGroupProjectService environmentGroupProjectService;
+    @Resource
+    private ExtProjectVersionMapper extProjectVersionMapper;
 
     private ThreadLocal<Long> currentScenarioOrder = new ThreadLocal<>();
 
@@ -325,7 +323,7 @@ public class ApiAutomationService {
         List<ApiMethodUrlDTO> useUrl = this.parseUrl(scenario);
         scenario.setUseUrl(JSONArray.toJSONString(useUrl));
         scenario.setOrder(ServiceUtils.getNextOrder(scenario.getProjectId(), extApiScenarioMapper::getLastOrder));
-
+        scenario.setRefId(request.getId());
         //检查场景的请求步骤。如果含有ESB请求步骤的话，要做参数计算处理。
         esbApiParamService.checkScenarioRequests(request);
 
@@ -438,7 +436,23 @@ public class ApiAutomationService {
         deleteUpdateBodyFile(scenario, beforeScenario);
         List<ApiMethodUrlDTO> useUrl = this.parseUrl(scenario);
         scenario.setUseUrl(JSONArray.toJSONString(useUrl));
-        apiScenarioMapper.updateByPrimaryKeySelective(scenario);
+
+        ApiScenarioExample example = new ApiScenarioExample();
+        example.createCriteria().andIdEqualTo(scenario.getId()).andVersionIdEqualTo(request.getVersionId());
+        if (apiScenarioMapper.updateByExampleSelective(scenario, example) == 0) {
+            // 插入新版本的数据
+            scenario.setId(UUID.randomUUID().toString());
+            scenario.setVersionId(request.getVersionId());
+            scenario.setCreateTime(System.currentTimeMillis());
+            scenario.setUpdateTime(System.currentTimeMillis());
+            scenario.setCreateUser(SessionUtils.getUserId());
+            scenario.setOrder(beforeScenario.getOrder());
+            scenario.setNum(beforeScenario.getNum());
+            scenario.setRefId(beforeScenario.getRefId());
+            apiScenarioMapper.insertSelective(scenario);
+        }
+
+
         apiScenarioReferenceIdService.saveByApiScenario(scenario);
         extScheduleMapper.updateNameByResourceID(request.getId(), request.getName());//  修改场景name，同步到修改首页定时任务
         uploadFiles(request, bodyFiles, scenarioFiles);
@@ -530,6 +544,11 @@ public class ApiAutomationService {
             }
         }
         saveFollows(scenario.getId(), request.getFollows());
+        if (StringUtils.isEmpty(request.getVersionId())) {
+            scenario.setVersionId(extProjectVersionMapper.getDefaultVersion(request.getProjectId()));
+        } else {
+            scenario.setVersionId(request.getVersionId());
+        }
         return scenario;
     }
 
@@ -727,7 +746,11 @@ public class ApiAutomationService {
 
     private void checkNameExist(SaveApiScenarioRequest request) {
         ApiScenarioExample example = new ApiScenarioExample();
-        example.createCriteria().andNameEqualTo(request.getName()).andProjectIdEqualTo(request.getProjectId()).andStatusNotEqualTo("Trash").andIdNotEqualTo(request.getId());
+        example.createCriteria().andNameEqualTo(request.getName())
+                .andProjectIdEqualTo(request.getProjectId())
+                .andStatusNotEqualTo("Trash")
+                .andIdNotEqualTo(request.getId())
+                .andVersionIdEqualTo(request.getVersionId());
         if (apiScenarioMapper.countByExample(example) > 0) {
             MSException.throwException(Translator.get("automation_name_already_exists"));
         }
@@ -3073,5 +3096,32 @@ public class ApiAutomationService {
 
     public void setScenarioEnvGroupIdNull(String envGroupId) {
         extApiScenarioMapper.setScenarioEnvGroupIdNull(envGroupId);
+    }
+
+    public List<ApiScenarioDTO> getApiScenarioVersions(String scenarioId) {
+        ApiScenarioWithBLOBs scenario = apiScenarioMapper.selectByPrimaryKey(scenarioId);
+        if (scenario == null) {
+            return new ArrayList<>();
+        }
+        ApiScenarioRequest request = new ApiScenarioRequest();
+        request.setRefId(scenario.getRefId());
+        return this.list(request);
+    }
+
+    public ApiScenarioDTO getApiScenarioByVersion(String refId, String versionId) {
+        ApiScenarioRequest request = new ApiScenarioRequest();
+        request.setRefId(refId);
+        request.setVersionId(versionId);
+        List<ApiScenarioDTO> list = this.list(request);
+        if (CollectionUtils.isEmpty(list)) {
+            return null;
+        }
+        return list.get(0);
+    }
+
+    public void deleteApiScenarioByVersion(String refId, String version) {
+        ApiScenarioExample example = new ApiScenarioExample();
+        example.createCriteria().andRefIdEqualTo(refId).andVersionIdEqualTo(version);
+        apiScenarioMapper.deleteByExample(example);
     }
 }

@@ -16,6 +16,7 @@ import io.metersphere.api.service.ApiDefinitionService;
 import io.metersphere.api.service.ApiTestEnvironmentService;
 import io.metersphere.api.service.EsbApiParamService;
 import io.metersphere.api.service.EsbImportService;
+import io.metersphere.base.domain.ApiDefinition;
 import io.metersphere.base.domain.ApiDefinitionWithBLOBs;
 import io.metersphere.base.domain.ApiTestEnvironmentWithBLOBs;
 import io.metersphere.base.domain.Schedule;
@@ -333,18 +334,33 @@ public class ApiDefinitionController {
     }
 
     @GetMapping("/getDocument/{id}/{type}")
-    public List<DocumentElement> getDocument(@PathVariable String id,@PathVariable String type) {
-        return apiDefinitionService.getDocument(id,type);
+    public List<DocumentElement> getDocument(@PathVariable String id, @PathVariable String type) {
+        return apiDefinitionService.getDocument(id, type);
     }
 
     @PostMapping("/jsonGenerator")
     public List<DocumentElement> jsonGenerator(@RequestBody Body body) {
-        return JSONToDocumentUtils.getDocument(body.getRaw(),body.getType());
+        return JSONToDocumentUtils.getDocument(body.getRaw(), body.getType());
     }
 
     @PostMapping("/update/follows/{definitionId}")
-    public void saveFollows(@PathVariable String definitionId,@RequestBody List<String> follows) {
-        apiDefinitionService.saveFollows(definitionId,follows);
+    public void saveFollows(@PathVariable String definitionId, @RequestBody List<String> follows) {
+        apiDefinitionService.saveFollows(definitionId, follows);
+    }
+
+    @GetMapping("versions/{definitionId}")
+    public List<ApiDefinitionResult> getApiDefinitionVersions(@PathVariable String definitionId) {
+        return apiDefinitionService.getApiDefinitionVersions(definitionId);
+    }
+
+    @GetMapping("get/{version}/{refId}")
+    public ApiDefinitionResult getApiDefinition(@PathVariable String version, @PathVariable String refId) {
+        return apiDefinitionService.getApiDefinitionByVersion(refId, version);
+    }
+
+    @GetMapping("delete/{version}/{refId}")
+    public void deleteApiDefinition(@PathVariable String version, @PathVariable String refId) {
+        apiDefinitionService.deleteApiDefinitionByVersion(refId, version);
     }
 
 }

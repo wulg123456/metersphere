@@ -373,9 +373,25 @@ public class ApiAutomationController {
     public List<String> getFollows(@PathVariable String scenarioId) {
         return apiAutomationService.getFollows(scenarioId);
     }
+
     @PostMapping("/update/follows/{scenarioId}")
     public void saveFollows(@PathVariable String scenarioId,@RequestBody List<String> follows) {
         apiAutomationService.saveFollows(scenarioId,follows);
+    }
+
+    @GetMapping("versions/{scenarioId}")
+    public List<ApiScenarioDTO> getApiScenarioVersions(@PathVariable String scenarioId) {
+        return apiAutomationService.getApiScenarioVersions(scenarioId);
+    }
+
+    @GetMapping("get/{version}/{refId}")
+    public ApiScenarioDTO getApiScenario(@PathVariable String version, @PathVariable String refId) {
+        return apiAutomationService.getApiScenarioByVersion(refId, version);
+    }
+
+    @GetMapping("delete/{version}/{refId}")
+    public void deleteApiScenario(@PathVariable String version, @PathVariable String refId) {
+        apiAutomationService.deleteApiScenarioByVersion(refId, version);
     }
 }
 

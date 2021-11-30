@@ -117,6 +117,18 @@
             </template>
           </ms-table-column>
 
+          <ms-table-column
+            :label="$t('project.version.name')"
+            :field="item"
+            :fields-width="fieldsWidth"
+            :filters="versionFilters"
+            min-width="100px"
+            prop="versionId">
+          <template v-slot:default="scope">
+            <span>{{ scope.row.versionName }}</span>
+          </template>
+        </ms-table-column>
+
           <ms-table-column prop="principalName"
                            min-width="120px"
                            :label="$t('api_test.definition.api_principal')"
@@ -277,7 +289,7 @@
 </template>
 
 <script>
-import {downloadFile, getCurrentProjectID, getUUID, objToStrMap, strMapToObj} from "@/common/js/utils";
+import {downloadFile, getCurrentProjectID, getUUID, hasLicense, objToStrMap, strMapToObj} from "@/common/js/utils";
 import {API_SCENARIO_CONFIGS} from "@/business/components/common/components/search/search-components";
 import {API_SCENARIO_LIST} from "../../../../../common/js/constants";
 
@@ -405,6 +417,7 @@ export default {
       selectDataSize: 0,
       selectAll: false,
       userFilters: [],
+      versionFilters: [],
       operators: [],
       selectRows: new Set(),
       isStop: false,
@@ -568,7 +581,7 @@ export default {
 
     this.search();
     this.getPrincipalOptions([]);
-
+    this.getVersionOptions();
     // 通知过来的数据跳转到编辑
     if (this.$route.query.resourceId) {
       this.$get('/api/automation/get/' + this.$route.query.resourceId, (response) => {
@@ -774,6 +787,15 @@ export default {
           return {text: u.name, value: u.id};
         });
       });
+    },
+    getVersionOptions() {
+      if (hasLicense()) {
+        this.$get('/project/version/get-project-versions/' + getCurrentProjectID(), response => {
+          this.versionFilters = response.data.map(u => {
+            return {text: u.name, value: u.id};
+          });
+        });
+      }
     },
     getEnvsOptions(option) {
       this.$get('/api/environment/list/' + this.projectId, response => {

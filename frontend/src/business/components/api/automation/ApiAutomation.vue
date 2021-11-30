@@ -70,6 +70,7 @@
           closable>
           <div class="ms-api-scenario-div">
             <ms-edit-api-scenario @refresh="refresh" @openScenario="editScenario" @closePage="closePage"
+                                  @checkout="checkout"
                                   :currentScenario="item.currentScenario"
                                   :custom-num="customNum" :moduleOptions="moduleOptions" ref="autoScenarioConfig"/>
           </div>
@@ -407,6 +408,9 @@ export default {
         this.$refs.apiTrashScenarioList.search(data);
       }
       this.$refs.nodeTree.list();
+    },
+    checkout() {
+      console.log(123);
     },
     refreshTree() {
       this.$refs.nodeTree.list();
