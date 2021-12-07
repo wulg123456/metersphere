@@ -175,6 +175,9 @@ public class PerformanceTestService {
 
     public LoadTest save(SaveTestPlanRequest request, List<MultipartFile> files) {
         checkQuota(request, true);
+        if (StringUtils.isEmpty(request.getVersionId())) {
+            request.setVersionId(extProjectVersionMapper.getDefaultVersion(request.getProjectId()));
+        }
         LoadTestWithBLOBs loadTest = saveLoadTest(request);
 
         List<FileMetadata> importFiles = request.getUpdatedFileList();
@@ -270,9 +273,8 @@ public class PerformanceTestService {
         loadTest.setStatus(PerformanceTestStatus.Saved.name());
         loadTest.setNum(getNextNum(request.getProjectId()));
         loadTest.setOrder(ServiceUtils.getNextOrder(request.getProjectId(), extLoadTestMapper::getLastOrder));
-        if (StringUtils.isEmpty(request.getVersionId())) {
-            request.setVersionId(extProjectVersionMapper.getDefaultVersion(request.getProjectId()));
-        }
+        loadTest.setVersionId(request.getVersionId());
+        loadTest.setRefId(request.getId());
         List<ApiLoadTest> apiList = request.getApiList();
         apiPerformanceService.add(apiList, loadTest.getId());
         loadTestMapper.insert(loadTest);

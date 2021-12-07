@@ -337,7 +337,6 @@ export default {
       formData.append('request', new Blob([requestJson], {
         type: "application/json"
       }));
-
       return {
         method: 'POST',
         url: url,
@@ -532,17 +531,17 @@ export default {
       this.save();
     },
     del(row) {
-      /*this.$alert(this.$t('api_test.definition.request.delete_confirm') + ' ' + row.name + " ？", '', {
+      this.$alert(this.$t('load_test.delete_confirm') + ' ' + row.name + " ？", '', {
         confirmButtonText: this.$t('commons.confirm'),
         callback: (action) => {
           if (action === 'confirm') {
-            this.$get('/api/definition/delete/' + row.id + '/' + this.httpForm.refId, () => {
+            this.$get('performance/delete/' + row.id + '/' + this.test.refId, () => {
               this.$success(this.$t('commons.delete_success'));
               this.getVersionHistory();
             });
           }
         }
-      });*/
+      });
     }
   }
 };

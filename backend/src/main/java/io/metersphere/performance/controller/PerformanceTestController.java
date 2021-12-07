@@ -271,6 +271,6 @@ public class PerformanceTestController {
 
     @GetMapping("delete/{version}/{refId}")
     public void deleteLoadTestByVersion(@PathVariable String version, @PathVariable String refId) {
-        performanceTestService.deleteLoadTestByVersion(refId, version);
+        performanceTestService.deleteLoadTestByVersion(version, refId);
     }
 }
