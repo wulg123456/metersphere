@@ -27,12 +27,20 @@
           @refresh="search"
           :disable-header-config="true"
           ref="table">
-
           <el-table-column
             prop="num"
             label="ID"
             width="100"
             show-overflow-tooltip>
+          </el-table-column>
+          <el-table-column
+            :label="$t('project.version.name')"
+            :filters="versionFilters"
+            min-width="100px"
+            prop="versionId">
+            <template v-slot:default="scope">
+              <span>{{ scope.row.versionName }}</span>
+            </template>
           </el-table-column>
           <el-table-column
             prop="name"
@@ -103,7 +111,7 @@ import MsContainer from "../../common/components/MsContainer";
 import MsMainContainer from "../../common/components/MsMainContainer";
 import MsPerformanceTestStatus from "./PerformanceTestStatus";
 import MsTableOperators from "../../common/components/MsTableOperators";
-import {getCurrentProjectID, getCurrentWorkspaceId} from "@/common/js/utils";
+import {getCurrentProjectID, getCurrentWorkspaceId, hasLicense} from "@/common/js/utils";
 import MsTableHeader from "../../common/components/MsTableHeader";
 import {TEST_CONFIGS} from "../../common/components/search/search-components";
 import {getLastTableSortField} from "@/common/js/tableUtils";
@@ -132,6 +140,7 @@ export default {
       projectId: null,
       tableData: [],
       multipleSelection: [],
+      versionFilters: [],
       currentPage: 1,
       pageSize: 10,
       total: 0,
@@ -183,6 +192,7 @@ export default {
     this.projectId = getCurrentProjectID();
     this.initTableData();
     this.getMaintainerOptions();
+    this.getVersionOptions();
   },
   methods: {
     getMaintainerOptions() {
@@ -268,7 +278,16 @@ export default {
         return;
       }
       this.$router.push('/performance/test/create');
-    }
+    },
+    getVersionOptions() {
+      if (hasLicense()) {
+        this.$get('/project/version/get-project-versions/' + getCurrentProjectID(), response => {
+          this.versionFilters = response.data.map(u => {
+            return {text: u.name, value: u.id};
+          });
+        });
+      }
+    },
   }
 };
 </script>

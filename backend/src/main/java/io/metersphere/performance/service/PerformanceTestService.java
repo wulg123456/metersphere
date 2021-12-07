@@ -13,6 +13,7 @@ import io.metersphere.base.mapper.*;
 import io.metersphere.base.mapper.ext.ExtLoadTestMapper;
 import io.metersphere.base.mapper.ext.ExtLoadTestReportDetailMapper;
 import io.metersphere.base.mapper.ext.ExtLoadTestReportMapper;
+import io.metersphere.base.mapper.ext.ExtProjectVersionMapper;
 import io.metersphere.commons.constants.*;
 import io.metersphere.commons.exception.MSException;
 import io.metersphere.commons.utils.*;
@@ -120,6 +121,8 @@ public class PerformanceTestService {
     private TestPlanProjectService testPlanProjectService;
     @Resource
     private ProjectMapper projectMapper;
+    @Resource
+    private ExtProjectVersionMapper extProjectVersionMapper;
 
     public List<LoadTestDTO> list(QueryTestPlanRequest request) {
         request.setOrders(ServiceUtils.getDefaultSortOrder(request.getOrders()));
@@ -240,7 +243,7 @@ public class PerformanceTestService {
             LoadTestExample example = new LoadTestExample();
             LoadTestExample.Criteria criteria = example.createCriteria();
             criteria.andNameEqualTo(request.getName())
-                    .andProjectIdEqualTo(request.getProjectId());
+                    .andProjectIdEqualTo(request.getProjectId()).andVersionIdEqualTo(request.getVersionId());
             if (StringUtils.isNotBlank(request.getId())) {
                 criteria.andIdNotEqualTo(request.getId());
             }
@@ -267,6 +270,9 @@ public class PerformanceTestService {
         loadTest.setStatus(PerformanceTestStatus.Saved.name());
         loadTest.setNum(getNextNum(request.getProjectId()));
         loadTest.setOrder(ServiceUtils.getNextOrder(request.getProjectId(), extLoadTestMapper::getLastOrder));
+        if (StringUtils.isEmpty(request.getVersionId())) {
+            request.setVersionId(extProjectVersionMapper.getDefaultVersion(request.getProjectId()));
+        }
         List<ApiLoadTest> apiList = request.getApiList();
         apiPerformanceService.add(apiList, loadTest.getId());
         loadTestMapper.insert(loadTest);
@@ -316,8 +322,22 @@ public class PerformanceTestService {
         loadTest.setAdvancedConfiguration(request.getAdvancedConfiguration());
         loadTest.setTestResourcePoolId(request.getTestResourcePoolId());
         loadTest.setStatus(PerformanceTestStatus.Saved.name());
-        //saveFollows(loadTest.getId(), request.getFollows());
-        loadTestMapper.updateByPrimaryKeySelective(loadTest);
+        // 更新数据
+        LoadTestExample example = new LoadTestExample();
+        example.createCriteria().andIdEqualTo(loadTest.getId()).andVersionIdEqualTo(request.getVersionId());
+        if (loadTestMapper.updateByExampleSelective(loadTest, example) == 0) {
+            // 插入新版本的数据
+            LoadTestWithBLOBs oldLoadTest = loadTestMapper.selectByPrimaryKey(loadTest.getId());
+            loadTest.setId(UUID.randomUUID().toString());
+            loadTest.setNum(oldLoadTest.getNum());
+            loadTest.setVersionId(request.getVersionId());
+            loadTest.setCreateTime(System.currentTimeMillis());
+            loadTest.setUpdateTime(System.currentTimeMillis());
+            loadTest.setCreateUser(SessionUtils.getUserId());
+            loadTest.setOrder(oldLoadTest.getOrder());
+            loadTest.setRefId(oldLoadTest.getRefId());
+            loadTestMapper.insertSelective(loadTest);
+        }
 
         return loadTest;
     }
@@ -964,4 +984,30 @@ public class PerformanceTestService {
         return list;
     }
 
+    public List<LoadTestDTO> getLoadTestVersions(String loadTestId) {
+        LoadTestWithBLOBs loadTestWithBLOBs = loadTestMapper.selectByPrimaryKey(loadTestId);
+        if(loadTestWithBLOBs==null){
+            return new ArrayList<>();
+        }
+        QueryTestPlanRequest request = new QueryTestPlanRequest() ;
+        request.setRefId(loadTestWithBLOBs.getRefId());
+        return this.list(request);
+    }
+
+    public LoadTestDTO getLoadTestByVersion(String refId, String versionId) {
+        QueryTestPlanRequest request = new QueryTestPlanRequest() ;
+        request.setRefId(refId);
+        request.setVersionId(versionId);
+        List<LoadTestDTO> list = this.list(request);
+        if (CollectionUtils.isEmpty(list)) {
+            return null;
+        }
+        return list.get(0);
+    }
+
+    public void deleteLoadTestByVersion(String refId, String version) {
+        LoadTestExample loadTestExample = new LoadTestExample();
+        loadTestExample.createCriteria().andRefIdEqualTo(refId).andVersionIdEqualTo(version);
+        loadTestMapper.deleteByExample(loadTestExample);
+    }
 }

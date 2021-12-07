@@ -101,10 +101,11 @@
 
     <select id="list" resultMap="BaseResultMap"
             parameterType="io.metersphere.performance.request.QueryTestPlanRequest">
-        SELECT load_test.*, project.name AS project_name, user.name AS user_name
+        SELECT load_test.*, project.name AS project_name, user.name AS user_name, project_version.name as version_name
         FROM load_test
                      LEFT JOIN project ON load_test.project_id = project.id
                      LEFT JOIN user ON load_test.user_id = user.id
+        LEFT JOIN project_version on project.id = project_version.project_id AND project_version.id = load_test.version_id
         <where>
             <if test="request.combine != null">
                 <include refid="combine">

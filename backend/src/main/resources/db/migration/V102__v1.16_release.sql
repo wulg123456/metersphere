@@ -80,6 +80,25 @@ UPDATE api_test_case
     INNER JOIN project_version ON project_version.project_id = api_test_case.project_id
 SET version_id = project_version.id;
 
+ -- load_test
+ALTER TABLE load_test
+    ADD version_id VARCHAR(50) NULL;
+
+ALTER TABLE load_test
+    ADD ref_id VARCHAR(50) NULL;
+
+CREATE INDEX load_test_ref_id_index
+    ON api_definition(ref_id);
+
+CREATE INDEX load_test_version_id_index
+    ON api_definition(version_id);
+
+UPDATE load_test
+SET ref_id = id;
+
+UPDATE load_test
+    INNER JOIN project_version ON project_version.project_id = load_test.project_id
+SET version_id = project_version.id;
 
 -- api scenario
 ALTER TABLE api_scenario
@@ -101,3 +120,4 @@ SET ref_id = id;
 UPDATE api_scenario
     INNER JOIN project_version ON project_version.project_id = api_scenario.project_id
 SET version_id = project_version.id;
+
