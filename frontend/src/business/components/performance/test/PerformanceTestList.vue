@@ -5,9 +5,10 @@
         <template v-slot:header>
           <ms-table-header :condition.sync="condition" @search="search"
                            :create-permission="['PROJECT_PERFORMANCE_TEST:READ+CREATE']"
+                           :version-options = "versionOptions"
+                           @changeVersion = "changeVersion"
                            @create="create" :createTip="$t('load_test.create')"/>
         </template>
-
         <ms-table
           :data="tableData"
           :condition="condition"
@@ -172,6 +173,8 @@ export default {
       ],
       userFilters: [],
       screenHeight: 'calc(100vh - 200px)',
+      versionOptions: [],
+      currentVersion: '',
     };
   },
   watch: {
@@ -282,11 +285,21 @@ export default {
     getVersionOptions() {
       if (hasLicense()) {
         this.$get('/project/version/get-project-versions/' + getCurrentProjectID(), response => {
+          this.versionOptions= response.data;
           this.versionFilters = response.data.map(u => {
             return {text: u.name, value: u.id};
           });
         });
       }
+    },
+    changeVersion(value) {
+      this.currentVersion = value;
+      this.condition.versionId = value;
+      this.refresh();
+    },
+    refresh(data) {
+      this.initTableData();
+      //this.$refs.nodeTree.list();
     },
   }
 };
