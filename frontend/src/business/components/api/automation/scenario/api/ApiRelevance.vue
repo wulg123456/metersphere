@@ -23,21 +23,9 @@
       :select-node-ids="selectNodeIds"
       :is-api-list-enable="isApiListEnable"
       @isApiListEnableChange="isApiListEnableChange"
-      @currentVersionChange="currentVersionChange"
       ref="apiList">
       <template v-slot:version>
-        <span style="padding-left:10px" v-xpack >
-          <el-select size="small" v-model="currentVersion"
-                     placeholder="当前版本"
-                     clearable>
-            <el-option
-              v-for="item in versionOptions"
-              :key="item.id"
-              :label="item.name + ' (' + item.status + ')'"
-              :value="item.id">
-            </el-option>
-          </el-select>
-        </span>
+        <version-select v-xpack :project-id="projectId" @changeVersion="currentVersionChange"/>
       </template>
     </scenario-relevance-api-list>
 
@@ -50,21 +38,9 @@
       :select-node-ids="selectNodeIds"
       :is-api-list-enable="isApiListEnable"
       @isApiListEnableChange="isApiListEnableChange"
-      @currentVersionChange="currentVersionChange"
       ref="apiCaseList">
       <template v-slot:version>
-        <span style="padding-left:10px" v-xpack >
-          <el-select size="small" v-model="currentVersion"
-                     placeholder="当前版本"
-                     clearable>
-            <el-option
-              v-for="item in versionOptions"
-              :key="item.id"
-              :label="item.name + ' (' + item.status + ')'"
-              :value="item.id">
-            </el-option>
-          </el-select>
-        </span>
+        <version-select v-xpack :project-id="projectId" @changeVersion="currentVersionChange"/>
       </template>
     </scenario-relevance-case-list>
 
@@ -91,9 +67,13 @@ import RelevanceDialog from "../../../../track/plan/view/comonents/base/Relevanc
 import TestCaseRelevanceBase from "@/business/components/track/plan/view/comonents/base/TestCaseRelevanceBase";
 import {getCurrentProjectID, hasLicense} from "@/common/js/utils";
 
+const requireComponent = require.context('@/business/components/xpack/', true, /\.vue$/);
+const VersionSelect = requireComponent.keys().length > 0 ? requireComponent("./version/VersionSelect.vue") : {};
+
 export default {
   name: "ApiRelevance",
   components: {
+    'VersionSelect': VersionSelect.default,
     TestCaseRelevanceBase,
     RelevanceDialog,
     ScenarioRelevanceApiList,
@@ -111,14 +91,12 @@ export default {
       projectId: "",
       versionFilters: [],
       currentVersion: null,
-      versionOptions: [],
     };
   },
   watch: {
     projectId() {
       this.refresh();
       this.$refs.nodeTree.list(this.projectId);
-      this.getVersionOptions(this.projectId);
     }
   },
   methods: {
@@ -203,16 +181,6 @@ export default {
     },
     setProject(projectId) {
       this.projectId = projectId;
-    },
-    getVersionOptions(projectId) {
-      if (hasLicense()) {
-        this.$get('/project/version/get-project-versions/' + projectId, response => {
-          this.versionOptions = response.data;
-          this.versionFilters = response.data.map(u => {
-            return {text: u.name, value: u.id};
-          });
-        });
-      }
     },
   }
 };

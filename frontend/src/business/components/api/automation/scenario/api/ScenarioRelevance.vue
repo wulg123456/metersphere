@@ -25,18 +25,7 @@
       :custom-num="customNum"
       ref="apiScenarioList">
       <template v-slot:version>
-        <span v-xpack >
-          <el-select size="small" v-model="currentVersion" @change="changeVersion"
-                     placeholder="当前版本"
-                     clearable>
-            <el-option
-              v-for="item in versionOptions"
-              :key="item.id"
-              :label="item.name + ' (' + item.status + ')'"
-              :value="item.id">
-            </el-option>
-          </el-select>
-        </span>
+        <version-select v-xpack :project-id="projectId" @changeVersion="changeVersion"/>
       </template>
     </ms-api-scenario-list>
 
@@ -61,9 +50,13 @@
   import RelevanceDialog from "../../../../track/plan/view/comonents/base/RelevanceDialog";
   import TestCaseRelevanceBase from "@/business/components/track/plan/view/comonents/base/TestCaseRelevanceBase";
 
+  const requireComponent = require.context('@/business/components/xpack/', true, /\.vue$/);
+  const VersionSelect = requireComponent.keys().length > 0 ? requireComponent("./version/VersionSelect.vue") : {};
+
   export default {
     name: "ScenarioRelevance",
     components: {
+      'VersionSelect': VersionSelect.default,
       TestCaseRelevanceBase,
       RelevanceDialog,
       MsApiScenarioList,
@@ -283,9 +276,9 @@
           });
         }
       },
-      changeVersion() {
+      changeVersion(currentVersion) {
         if (this.$refs.apiScenarioList) {
-          this.$refs.apiScenarioList.condition.versionId = this.currentVersion || null;
+          this.$refs.apiScenarioList.condition.versionId = currentVersion || null;
         }
         this.refresh();
       }

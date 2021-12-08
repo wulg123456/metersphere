@@ -43,18 +43,7 @@
               right-content="CASE"
             >
               <template v-slot:version>
-                <span style="padding-left:10px" v-xpack >
-                  <el-select size="small" v-model="currentVersion" @change="changeVersion"
-                             placeholder="当前版本"
-                             clearable>
-                    <el-option
-                      v-for="item in versionOptions"
-                      :key="item.id"
-                      :label="item.name + ' (' + item.status + ')'"
-                      :value="item.id">
-                    </el-option>
-                  </el-select>
-                </span>
+                <version-select v-xpack :project-id="projectId" @changeVersion="changeVersion"/>
               </template>
               <!-- 列表集合 -->
               <ms-api-list
@@ -115,18 +104,7 @@
               :right-button-enable="currentProtocol === 'HTTP' "
             >
               <template v-slot:version>
-                <span style="padding-left:10px" v-xpack >
-                  <el-select size="small" v-model="currentVersion" @change="changeVersion"
-                             placeholder="当前版本"
-                             clearable>
-                    <el-option
-                      v-for="item in versionOptions"
-                      :key="item.id"
-                      :label="item.name + ' (' + item.status + ')'"
-                      :value="item.id">
-                    </el-option>
-                  </el-select>
-                </span>
+                <version-select v-xpack :project-id="projectId" @changeVersion="changeVersion"/>
               </template>
               <!-- 列表集合 -->
               <ms-api-list
@@ -292,6 +270,10 @@ import MsEnvironmentSelect from "./components/case/MsEnvironmentSelect";
 import {PROJECT_ID} from "@/common/js/constants";
 
 
+const requireComponent = require.context('@/business/components/xpack/', true, /\.vue$/);
+const VersionSelect = requireComponent.keys().length > 0 ? requireComponent("./version/VersionSelect.vue") : {};
+
+
 export default {
   name: "ApiDefinition",
   computed: {
@@ -309,6 +291,7 @@ export default {
     },
   },
   components: {
+    'VersionSelect': VersionSelect.default,
     ApiSchedule,
     MsTabButton,
     MsTableButton,
@@ -376,8 +359,7 @@ export default {
       param: {},
       useEnvironment: String,
       activeTab: "api",
-      versionOptions: [],
-      currentVersion: '',
+      currentVersion: null,
     };
   },
   activated() {
@@ -452,7 +434,6 @@ export default {
   },
   mounted() {
     this.init();
-    this.getVersionOptionList();
   },
   methods: {
     setEnvironment(data) {
@@ -840,29 +821,23 @@ export default {
     updateInitApiTableOpretion(param) {
       this.initApiTableOpretion = param;
     },
-    getVersionOptionList() {
-      if (hasLicense()) {
-        this.$get('/project/version/get-project-versions/' + getCurrentProjectID(), response => {
-          this.versionOptions = response.data;
-        });
-      }
-    },
-    changeVersion() {
+    changeVersion(currentVersion) {
       if (this.$refs.caseList && this.$refs.caseList[0]) {
-        this.$refs.caseList[0].condition.versionId = this.currentVersion || null;
+        this.$refs.caseList[0].condition.versionId = currentVersion || null;
       }
       if (this.$refs.trashApiList) {
-        this.$refs.trashApiList.condition.versionId = this.currentVersion || null;
+        this.$refs.trashApiList.condition.versionId = currentVersion || null;
       }
       if (this.$refs.trashCaseList) {
-        this.$refs.trashCaseList.condition.versionId = this.currentVersion || null;
+        this.$refs.trashCaseList.condition.versionId = currentVersion || null;
       }
       if (this.$refs.apiDefList && this.$refs.apiDefList[0]) {
-        this.$refs.apiDefList[0].condition.versionId = this.currentVersion || null;
+        this.$refs.apiDefList[0].condition.versionId = currentVersion || null;
       }
       if (this.$refs.documentsPage && this.$refs.documentsPage[0]) {
-        this.$refs.documentsPage[0].condition.versionId = this.currentVersion || null;
+        this.$refs.documentsPage[0].condition.versionId = currentVersion || null;
       }
+      this.currentVersion = currentVersion || null;
       this.refresh();
     }
   }
