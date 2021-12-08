@@ -19,8 +19,8 @@
                            content="转场景测试" @click="historicalDataUpgrade"/>
 
         <slot name="button"></slot>
-        <span style="padding-left:10px" v-xpack>
-          <el-select size="small" v-model="currentVersion" @change="changeVersion"
+        <span style="padding-left:10px" v-xpack v-if="isShowVersion">
+          <el-select size="small" v-model="version" @change="changeVersion"
                      placeholder="当前版本"
                      clearable>
             <el-option
@@ -52,7 +52,7 @@
     components: {MsTableAdvSearchBar, MsTableSearchBar, MsTableButton},
     data() {
       return {
-        currentVersion:''
+        version:this.currentVersion
       };
     },
     props: {
@@ -105,6 +105,13 @@
         type: String,
 
       },
+      currentVersion:{
+        type: String,
+      },
+      isShowVersion:{
+        type: Boolean,
+        default: false
+      },
       isTesterPermission: {
         type: Boolean,
         default: false
@@ -146,7 +153,6 @@
         this.$emit('historicalDataUpgrade');
       },
       changeVersion(type){
-        this.currentVersion = type
         this.$emit('changeVersion',type);
       }
     },

@@ -6,6 +6,8 @@
           <ms-table-header :condition.sync="condition" @search="search"
                            :create-permission="['PROJECT_PERFORMANCE_TEST:READ+CREATE']"
                            :version-options = "versionOptions"
+                           :current-version.sync = "currentVersion"
+                           :is-show-version = true
                            @changeVersion = "changeVersion"
                            @create="create" :createTip="$t('load_test.create')"/>
         </template>
