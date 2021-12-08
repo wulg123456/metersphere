@@ -1010,9 +1010,13 @@ public class PerformanceTestService {
         return list.get(0);
     }
 
-    public void deleteLoadTestByVersion(String refId, String version) {
+    public void deleteLoadTestByVersion(String version,String refId) {
         LoadTestExample loadTestExample = new LoadTestExample();
         loadTestExample.createCriteria().andRefIdEqualTo(refId).andVersionIdEqualTo(version);
-        loadTestMapper.deleteByExample(loadTestExample);
+        List<LoadTest> loadTests = loadTestMapper.selectByExample(loadTestExample);
+        LoadTest loadTest = loadTests.get(0);
+        DeleteTestPlanRequest request = new DeleteTestPlanRequest();
+        request.setId(loadTest.getId());
+        this.delete(request);
     }
 }
