@@ -734,8 +734,8 @@ public class ApiAutomationService {
         }
     }
 
-    public ApiScenarioWithBLOBs getApiScenario(String id) {
-        return apiScenarioMapper.selectByPrimaryKey(id);
+    public ApiScenarioDTO getApiScenario(String id) {
+        return extApiScenarioMapper.selectById(id);
     }
 
     public String setDomain(ApiScenarioEnvRequest request) {

@@ -123,7 +123,7 @@ public class ApiTestCaseController {
     }
 
     @GetMapping("/get/{id}")
-    public ApiTestCaseWithBLOBs get(@PathVariable String id) {
+    public ApiTestCaseInfo get(@PathVariable String id) {
         return apiTestCaseService.get(id);
     }
 

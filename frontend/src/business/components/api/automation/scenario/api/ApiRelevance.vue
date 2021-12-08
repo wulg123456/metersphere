@@ -118,7 +118,7 @@ export default {
     projectId() {
       this.refresh();
       this.$refs.nodeTree.list(this.projectId);
-      this.getVersionOptions();
+      this.getVersionOptions(this.projectId);
     }
   },
   methods: {
@@ -204,9 +204,9 @@ export default {
     setProject(projectId) {
       this.projectId = projectId;
     },
-    getVersionOptions() {
+    getVersionOptions(projectId) {
       if (hasLicense()) {
-        this.$get('/project/version/get-project-versions/' + getCurrentProjectID(), response => {
+        this.$get('/project/version/get-project-versions/' + projectId, response => {
           this.versionOptions = response.data;
           this.versionFilters = response.data.map(u => {
             return {text: u.name, value: u.id};

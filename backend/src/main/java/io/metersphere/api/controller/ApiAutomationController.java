@@ -171,7 +171,7 @@ public class ApiAutomationController {
     }
 
     @GetMapping("/getApiScenario/{id}")
-    public ApiScenarioWithBLOBs getScenarioDefinition(@PathVariable String id) {
+    public ApiScenarioDTO getScenarioDefinition(@PathVariable String id) {
         return apiAutomationService.getApiScenario(id);
     }
 

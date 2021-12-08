@@ -648,4 +648,9 @@
         and api_scenario.status != 'Trash';
     </select>
 
+    <select id="selectById" resultMap="BaseResultMap">
+        select api_scenario.*, project_version.name as version_name
+        from api_scenario LEFT JOIN project_version on project_version.project_id = api_scenario.project_id and project_version.id = version_id
+        WHERE api_scenario.id = #{id}
+    </select>
 </mapper>

@@ -211,7 +211,7 @@ public class ApiTestCaseService {
         }
     }
 
-    public ApiTestCaseWithBLOBs get(String id) {
+    public ApiTestCaseInfo get(String id) {
 //        ApiTestCaseWithBLOBs returnBlobs = apiTestCaseMapper.selectByPrimaryKey(id);
         ApiTestCaseInfo model = extApiTestCaseMapper.selectApiCaseInfoByPrimaryKey(id);
         if (model != null) {

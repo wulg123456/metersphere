@@ -20,6 +20,7 @@
             <i class="el-icon-warning"/>
           </el-tooltip>
         </span>
+        <span v-xpack v-if="request.versionName">{{$t('project.version.name')}}: {{ request.versionName }}</span>
       </template>
 
       <template v-slot:behindHeaderLeft>
@@ -449,6 +450,7 @@ export default {
             this.request.disabled = true;
             this.request.root = true;
             this.request.projectId = response.data.projectId;
+            this.request.versionName = response.data.versionName;
             let req = JSON.parse(response.data.request);
             if (req && this.request) {
               this.request.hashTree = hashTree;
@@ -468,6 +470,7 @@ export default {
                 this.getWorkspaceId(response.data.projectId);
               }
               this.request.id = response.data.id;
+              this.request.versionName = response.data.versionName;
             }
           })
         } else if (this.request.refType === 'API') {
@@ -478,6 +481,7 @@ export default {
                 this.getWorkspaceId(response.data.projectId);
               }
               this.request.id = response.data.id;
+              this.request.versionName = response.data.versionName;
             }
           })
         }

@@ -23,7 +23,22 @@
       @selection="setData"
       :is-relate="true"
       :custom-num="customNum"
-      ref="apiScenarioList"/>
+      ref="apiScenarioList">
+      <template v-slot:version>
+        <span v-xpack>
+          <el-select size="small" v-model="currentVersion" @change="changeVersion"
+                     placeholder="当前版本"
+                     clearable>
+            <el-option
+              v-for="item in versionOptions"
+              :key="item.id"
+              :label="item.name + ' (' + item.status + ')'"
+              :value="item.id">
+            </el-option>
+          </el-select>
+        </span>
+      </template>
+    </ms-api-scenario-list>
 
     <template v-slot:headerBtn>
       <el-button type="primary" @click="copy" :loading="buttonIsWorking" @keydown.enter.native.prevent size="mini">
@@ -42,7 +57,7 @@
   import MsMainContainer from "../../../../common/components/MsMainContainer";
   import MsApiScenarioModule from "../ApiScenarioModule";
   import MsApiScenarioList from "../ApiScenarioList";
-  import {getUUID} from "../../../../../../common/js/utils";
+  import {getCurrentProjectID, getUUID, hasLicense} from "../../../../../../common/js/utils";
   import RelevanceDialog from "../../../../track/plan/view/comonents/base/RelevanceDialog";
   import TestCaseRelevanceBase from "@/business/components/track/plan/view/comonents/base/TestCaseRelevanceBase";
 
@@ -66,7 +81,9 @@
         currentScenario: [],
         currentScenarioIds: [],
         projectId: '',
-        customNum: false
+        customNum: false,
+        versionOptions: [],
+        currentVersion: '',
       }
     },
     watch: {
@@ -81,6 +98,7 @@
           });
         }
         this.$refs.apiScenarioList.search(this.projectId);
+        this.getVersionOptionList(this.projectId);
       }
     },
     methods: {
@@ -258,6 +276,19 @@
       getConditions() {
         return this.$refs.apiScenarioList.getConditions();
       },
+      getVersionOptionList(projectId) {
+        if (hasLicense()) {
+          this.$get('/project/version/get-project-versions/' + projectId, response => {
+            this.versionOptions = response.data;
+          });
+        }
+      },
+      changeVersion() {
+        if (this.$refs.apiScenarioList) {
+          this.$refs.apiScenarioList.condition.versionId = this.currentVersion || null;
+        }
+        this.refresh();
+      }
     }
   }
 </script>
