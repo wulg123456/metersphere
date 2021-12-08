@@ -29,17 +29,17 @@
                  ref="currentScenario" style="margin-right: 20px">
           <!-- 基础信息 -->
           <el-row>
-            <el-col :span="8">
+            <el-col :span="7">
               <el-form-item :label="$t('commons.name')" prop="name">
                 <el-input class="ms-scenario-input" size="small" v-model="currentScenario.name"/>
               </el-form-item>
             </el-col>
-            <el-col :span="8">
+            <el-col :span="7">
               <el-form-item :label="$t('test_track.module.module')" prop="apiScenarioModuleId">
                 <ms-select-tree size="small" :data="moduleOptions" :defaultKey="currentScenario.apiScenarioModuleId" @getValue="setModule" :obj="moduleObj" clearable checkStrictly/>
               </el-form-item>
             </el-col>
-            <el-col :span="8">
+            <el-col :span="7">
               <el-form-item :label="$t('commons.status')" prop="status">
                 <el-select class="ms-scenario-input" size="small" v-model="currentScenario.status">
                   <el-option v-for="item in options" :key="item.id" :label="$t(item.label)" :value="item.id"/>
@@ -48,7 +48,7 @@
             </el-col>
           </el-row>
           <el-row>
-            <el-col :span="8">
+            <el-col :span="7">
               <el-form-item :label="$t('api_test.definition.request.responsible')" prop="principal">
                 <el-select v-model="currentScenario.principal"
                            :placeholder="$t('api_test.definition.request.responsible')" filterable size="small"
@@ -62,21 +62,21 @@
                 </el-select>
               </el-form-item>
             </el-col>
-            <el-col :span="8">
+            <el-col :span="7">
               <el-form-item :label="$t('test_track.case.priority')" prop="level">
                 <el-select class="ms-scenario-input" size="small" v-model="currentScenario.level">
                   <el-option v-for="item in levels" :key="item.id" :label="item.label" :value="item.id"/>
                 </el-select>
               </el-form-item>
             </el-col>
-            <el-col :span="8">
+            <el-col :span="7">
               <el-form-item :label="$t('api_test.automation.tag')" prop="tags">
                 <ms-input-tag :currentScenario="currentScenario" ref="tag"/>
               </el-form-item>
             </el-col>
           </el-row>
           <el-row>
-            <el-col :span="8">
+            <el-col :span="7">
               <el-form-item :label="$t('commons.description')" prop="description">
                 <el-input class="ms-http-textarea"
                           v-model="currentScenario.description"
@@ -85,7 +85,7 @@
                           :rows="1" size="small"/>
               </el-form-item>
             </el-col>
-            <el-col :span="8" v-if="customNum">
+            <el-col :span="7" v-if="customNum">
               <el-form-item label="ID" prop="customNum">
                 <el-input v-model.trim="currentScenario.customNum" size="small"></el-input>
               </el-form-item>
@@ -134,7 +134,7 @@
                   <el-checkbox v-model="onSampleError"><span style="font-size: 13px;">{{ $t('commons.failure_continues') }}</span></el-checkbox>
                 </el-col>
 
-                <el-col :span="8">
+                <el-col :span="7">
                   <div style="float: right;width: 300px">
                     <env-popover :disabled="scenarioDefinition.length < 1" :env-map="projectEnvMap"
                                  :project-ids="projectIds" :result="envResult"

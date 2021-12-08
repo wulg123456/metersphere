@@ -136,7 +136,7 @@ export default {
         priority: CASE_PRIORITY,
       },
       methodColorMap: new Map(API_METHOD_COLOUR),
-      screenHeight: 'calc(100vh - 300px)',//屏幕高度
+      screenHeight: 'calc(100vh - 400px)',//屏幕高度
       tableData: [],
       currentPage: 1,
       pageSize: 10,
@@ -315,7 +315,7 @@ export default {
 .search-input {
   float: right;
   width: 300px;
-  /*margin-bottom: 20px;*/
+  margin-bottom: 20px;
   margin-right: 20px;
 }
 
