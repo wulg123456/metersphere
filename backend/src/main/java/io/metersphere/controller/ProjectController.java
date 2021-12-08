@@ -142,7 +142,7 @@ public class ProjectController {
         return projectService.genTcpMockPort(id);
     }
 
-    @GetMapping("enable/{projectId}")
+    @GetMapping("version/enable/{projectId}")
     public boolean isVersionEnable(@PathVariable String projectId) {
         return projectService.isVersionEnable(projectId);
     }
