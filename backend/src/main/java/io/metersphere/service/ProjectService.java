@@ -10,6 +10,7 @@ import io.metersphere.api.tcp.TCPPool;
 import io.metersphere.base.domain.*;
 import io.metersphere.base.mapper.*;
 import io.metersphere.base.mapper.ext.ExtProjectMapper;
+import io.metersphere.base.mapper.ext.ExtProjectVersionMapper;
 import io.metersphere.base.mapper.ext.ExtUserGroupMapper;
 import io.metersphere.base.mapper.ext.ExtUserMapper;
 import io.metersphere.commons.constants.UserGroupConstants;
@@ -93,6 +94,8 @@ public class ProjectService {
     private String tcpMockPorts;
     @Resource
     private EnvironmentGroupProjectService environmentGroupProjectService;
+    @Resource
+    private ExtProjectVersionMapper extProjectVersionMapper;
 
     public Project addProject(Project project) {
         if (StringUtils.isBlank(project.getName())) {
@@ -762,5 +765,9 @@ public class ProjectService {
 
     public int getProjectBugSize(String projectId) {
         return extProjectMapper.getProjectPlanBugSize(projectId);
+    }
+
+    public boolean isVersionEnable(String projectId) {
+        return extProjectVersionMapper.isVersionEnable(projectId);
     }
 }

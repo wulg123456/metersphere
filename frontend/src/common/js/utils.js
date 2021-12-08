@@ -2,16 +2,11 @@ import {
   COUNT_NUMBER,
   COUNT_NUMBER_SHALLOW,
   LicenseKey,
-  ORGANIZATION_ID,
   ORIGIN_COLOR,
   ORIGIN_COLOR_SHALLOW,
   PRIMARY_COLOR,
   PROJECT_ID,
-  ROLE_ADMIN,
-  ROLE_ORG_ADMIN,
-  ROLE_TEST_MANAGER,
-  ROLE_TEST_USER,
-  ROLE_TEST_VIEWER,
+  PROJECT_VERSION_ENABLE,
   TokenKey,
   WORKSPACE_ID
 } from "./constants";
@@ -100,6 +95,11 @@ export function hasLicense() {
   return v && v === 'valid';
 }
 
+export function isVersionEnable() {
+  let v = sessionStorage.getItem(PROJECT_VERSION_ENABLE);
+  return v && v === 'true';
+}
+
 export function hasPermissions(...permissions) {
   for (let p of permissions) {
     if (hasPermission(p)) {
@@ -141,6 +141,10 @@ export function saveLocalStorage(response) {
   localStorage.setItem(TokenKey, JSON.stringify(response.data));
   if (!sessionStorage.getItem(PROJECT_ID)) {
     sessionStorage.setItem(PROJECT_ID, response.data.lastProjectId);
+    axios.get('/project/version/enable/' + response.data.lastProjectId)
+      .then(response => {
+        saveProjectVersionEnable(response.data.data);
+      });
   }
   if (!sessionStorage.getItem(WORKSPACE_ID)) {
     sessionStorage.setItem(WORKSPACE_ID, response.data.lastWorkspaceId);
@@ -150,6 +154,10 @@ export function saveLocalStorage(response) {
 export function saveLicense(data) {
   // 保存License
   localStorage.setItem(LicenseKey, data);
+}
+
+export function saveProjectVersionEnable(data) {
+  sessionStorage.setItem(PROJECT_VERSION_ENABLE, data);
 }
 
 export function removeLicense() {
@@ -501,5 +509,5 @@ export function setCurTabId(vueObj, tab, ref) {
       let curTabId = cutEditTab ? cutEditTab.tabId : null;
       vueObj.$store.commit('setCurTabId', curTabId);
     }
-  })
+  });
 }

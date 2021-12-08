@@ -11,7 +11,7 @@ import YanProgress from 'yan-progress';
 import './permission' // permission control
 import i18n from "../i18n/i18n";
 import store from "../store";
-import {permission, roles, tester, xpack, modules} from './permission';
+import {permission, roles, tester, xpack, modules, versionEnable} from './permission';
 import chart from "../common/js/chart";
 import CalendarHeatmap from "../common/js/calendar-heatmap";
 import '../common/css/menu-header.css';
@@ -60,6 +60,8 @@ Vue.use(VueClipboard)
 Vue.directive('permission', permission);
 
 Vue.directive('xpack', xpack);
+
+Vue.directive('version-enable', versionEnable);
 
 Vue.directive('modules', modules);
 
