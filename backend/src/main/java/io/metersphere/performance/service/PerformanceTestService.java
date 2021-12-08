@@ -312,8 +312,7 @@ public class PerformanceTestService {
 
         // 导入项目里其他的文件
         List<String> addFileIds = ListUtils.subtract(updatedFileIds, originFileIds);
-        this.importFiles(addFileIds, testId, request.getFileSorts());
-
+        this.importFiles(addFileIds, loadTest.getId(), request.getFileSorts());
         // 处理新上传的文件
         this.saveUploadFiles(files, loadTest, request.getFileSorts());
 
@@ -338,9 +337,10 @@ public class PerformanceTestService {
             loadTest.setCreateUser(SessionUtils.getUserId());
             loadTest.setOrder(oldLoadTest.getOrder());
             loadTest.setRefId(oldLoadTest.getRefId());
+            //插入文件
+            copyLoadTestFiles(testId, loadTest.getId());
             loadTestMapper.insertSelective(loadTest);
         }
-
         return loadTest;
     }
 
@@ -560,7 +560,6 @@ public class PerformanceTestService {
         if (StringUtils.length(copyName) > 30) {
             MSException.throwException(Translator.get("load_test_name_length"));
         }
-
         copy.setId(UUID.randomUUID().toString());
         copy.setName(copyName);
         copy.setCreateTime(System.currentTimeMillis());
@@ -570,16 +569,20 @@ public class PerformanceTestService {
         copy.setNum(getNextNum(copy.getProjectId()));
         loadTestMapper.insert(copy);
         // copy test file
+        copyLoadTestFiles(request.getId(), copy.getId());
+        request.setId(copy.getId());
+    }
+
+    private void copyLoadTestFiles(String oldLoadTestId, String newLoadTestId) {
         LoadTestFileExample loadTestFileExample = new LoadTestFileExample();
-        loadTestFileExample.createCriteria().andTestIdEqualTo(request.getId());
+        loadTestFileExample.createCriteria().andTestIdEqualTo(oldLoadTestId);
         List<LoadTestFile> loadTestFiles = loadTestFileMapper.selectByExample(loadTestFileExample);
         if (!CollectionUtils.isEmpty(loadTestFiles)) {
             loadTestFiles.forEach(loadTestFile -> {
-                loadTestFile.setTestId(copy.getId());
+                loadTestFile.setTestId(newLoadTestId);
                 loadTestFileMapper.insert(loadTestFile);
             });
         }
-        request.setId(copy.getId());
     }
 
     public void updateSchedule(Schedule request) {
@@ -996,7 +999,7 @@ public class PerformanceTestService {
         return this.list(request);
     }
 
-    public LoadTestDTO getLoadTestByVersion(String refId, String versionId) {
+    public LoadTestDTO getLoadTestByVersion(String versionId,String refId) {
         QueryTestPlanRequest request = new QueryTestPlanRequest() ;
         request.setRefId(refId);
         request.setVersionId(versionId);

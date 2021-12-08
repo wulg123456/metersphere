@@ -264,18 +264,21 @@ export default {
             if (!this.test.schedule) {
               this.test.schedule = {};
             }
-            this.$get('/performance/test/follow/' + testId, response => {
-              this.$set(this.test, 'follows', response.data);
-              for (let i = 0; i < this.test.follows.length; i++) {
-                if(this.test.follows[i]===this.currentUser().id){
-                  this.showFollow = true;
-                  break;
-                }
-              }
-            });
+            this.getDefaultFollow(testId);
           }
         });
       }
+    },
+    getDefaultFollow(testId){
+      this.$get('/performance/test/follow/' + testId, response => {
+        this.$set(this.test, 'follows', response.data);
+        for (let i = 0; i < this.test.follows.length; i++) {
+          if(this.test.follows[i]===this.currentUser().id){
+            this.showFollow = true;
+            break;
+          }
+        }
+      });
     },
     save() {
       if (!this.validTest()) {
@@ -511,7 +514,11 @@ export default {
       }
     },
     getVersionHistory() {
-      this.$get('/performance/versions/' + this.test.id, response => {
+      let testId = undefined
+      if(this.testId){
+        testId = this.testId;
+      }
+      this.$get('/performance/versions/' + testId, response => {
         this.versionData = response.data;
       });
     },
@@ -519,11 +526,15 @@ export default {
       // console.log(row);
     },
     checkout(row) {
-      let test = this.versionData.filter(v => v.versionId === row.id)[0];
-      if (test.tags && test.tags.length > 0) {
-        test.tags = JSON.parse(test.tags);
-      }
-      this.$emit("checkout", test);
+      //let test = this.versionData.filter(v => v.versionId === row.id)[0];
+      this.test.versionId = row.id;
+      this.result = this.$get('/performance/get/' +  this.test.versionId+"/"+this.test.refId, response => {
+        this.testId = response.data.id;
+        this.$router.push({
+          path: '/performance/test/edit/' + this.testId,
+        });
+        this.getVersionHistory();
+      });
     },
     create(row) {
       // 创建新版本

@@ -266,7 +266,7 @@ public class PerformanceTestController {
 
     @GetMapping("get/{version}/{refId}")
     public LoadTestDTO getLoadTestByVersion(@PathVariable String version, @PathVariable String refId) {
-        return performanceTestService.getLoadTestByVersion(refId, version);
+        return performanceTestService.getLoadTestByVersion(version,refId);
     }
 
     @GetMapping("delete/{version}/{refId}")
