@@ -486,7 +486,7 @@
         WHERE use_url IS NULL
     </select>
     <select id="selectTrash" resultType="java.lang.Integer">
-        select count(1)
+        select count(DISTINCT ref_id)
         from api_scenario
         where project_id = #{projectId}
           and status = 'Trash'

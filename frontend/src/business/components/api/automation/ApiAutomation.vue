@@ -39,7 +39,22 @@
             :custom-num="customNum"
             :init-api-table-opretion="initApiTableOpretion"
             @updateInitApiTableOpretion="updateInitApiTableOpretion"
-            ref="apiTrashScenarioList"/>
+            ref="apiTrashScenarioList">
+            <template v-slot:version>
+                <span v-xpack>
+                  <el-select size="small" v-model="currentVersion" @change="changeVersion"
+                             placeholder="当前版本"
+                             clearable>
+                    <el-option
+                      v-for="item in versionOptions"
+                      :key="item.id"
+                      :label="item.name + ' (' + item.status + ')'"
+                      :value="item.id">
+                    </el-option>
+                  </el-select>
+                </span>
+            </template>
+          </ms-api-scenario-list>
         </el-tab-pane>
         <el-tab-pane name="default" :label="$t('api_test.automation.scenario_list')">
           <ms-api-scenario-list

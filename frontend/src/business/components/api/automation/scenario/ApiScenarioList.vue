@@ -3,8 +3,9 @@
     <el-card class="table-card-nopadding" v-loading="result.loading">
       <slot name="version"></slot>
 
-      <ms-table-header :condition.sync="condition" @search="selectByParam" title=""
-                       :show-create="false" :tip="$t('commons.search_by_id_name_tag')"/>
+      <ms-table-search-bar :condition.sync="condition" @change="search" class="search-input"
+                           :tip="$t('commons.search_by_id_name_tag')"/>
+      <ms-table-adv-search-bar :condition.sync="condition" @search="search" class="adv-search-bar"/>
 
       <ms-table
         :data="tableData"
@@ -155,9 +156,9 @@
               <div v-if="row.environmentMap">
                 <span v-for="(k, v, index) in row.environmentMap" :key="index">
                   <span v-if="index===0">
-                    <span class="project-name" :title="v">{{v}}</span>:
+                    <span class="project-name" :title="v">{{ v }}</span>:
                     <el-tag type="success" size="mini" effect="plain">
-                      <span class="project-env">{{k}}</span>
+                      <span class="project-env">{{ k }}</span>
                     </el-tag>
                     <br/>
                   </span>
@@ -166,8 +167,8 @@
                     width="350"
                     trigger="click">
                     <div v-for="(k, v, index) in row.environmentMap" :key="index">
-                      <span class="plan-case-env">{{v}}:
-                        <el-tag type="success" size="mini" effect="plain">{{k}}</el-tag><br/>
+                      <span class="plan-case-env">{{ v }}:
+                        <el-tag type="success" size="mini" effect="plain">{{ k }}</el-tag><br/>
                       </span>
                     </div>
                     <el-link v-if="index === 1" slot="reference" type="info" :underline="false" icon="el-icon-more"/>
@@ -265,7 +266,8 @@
         <el-drawer :visible.sync="showReportVisible" :destroy-on-close="true" direction="ltr" :withHeader="true"
                    :modal="false"
                    size="90%">
-          <ms-api-report-detail @invisible="showReportVisible = false" @refresh="search" :infoDb="infoDb" :show-cancel-button="false"
+          <ms-api-report-detail @invisible="showReportVisible = false" @refresh="search" :infoDb="infoDb"
+                                :show-cancel-button="false"
                                 :report-id="showReportId" :currentProjectId="projectId"/>
         </el-drawer>
         <!--测试计划-->
@@ -309,15 +311,18 @@ import HeaderLabelOperate from "@/business/components/common/head/HeaderLabelOpe
 import {editApiScenarioCaseOrder} from "@/business/components/api/automation/api-automation";
 import {TYPE_TO_C} from "@/business/components/api/automation/scenario/Setting";
 import axios from "axios";
+import {getGraphByCondition} from "@/network/graph";
+import MsTableSearchBar from "@/business/components/common/components/MsTableSearchBar";
+import MsTableAdvSearchBar from "@/business/components/common/components/search/MsTableAdvSearchBar";
 
 const requireComponent = require.context('@/business/components/xpack/', true, /\.vue$/);
 const relationshipGraphDrawer = requireComponent.keys().length > 0 ? requireComponent("./graph/RelationshipGraphDrawer.vue") : {};
 
-import {getGraphByCondition} from "@/network/graph";
-
 export default {
   name: "MsApiScenarioList",
   components: {
+    MsTableAdvSearchBar,
+    MsTableSearchBar,
     MsTable,
     MsTableColumn,
     HeaderLabelOperate,
@@ -962,8 +967,8 @@ export default {
               resolve();
             }
           }
-        })
-      })
+        });
+      });
     },
     sort(stepArray) {
       for (let i in stepArray) {
@@ -1039,7 +1044,7 @@ export default {
             this.reportId = getUUID().substring(0, 8);
             this.runVisible = true;
             this.$set(row, "isStop", true);
-          })
+          });
         }
       });
     },
@@ -1284,7 +1289,7 @@ export default {
   vertical-align: middle;
 }
 
-.project-env{
+.project-env {
   display: inline-block;
   white-space: nowrap;
   overflow: hidden;
@@ -1293,4 +1298,15 @@ export default {
   vertical-align: middle;
 }
 
+
+.search-input {
+  float: right;
+  width: 200px;
+}
+
+.adv-search-bar {
+  float: right;
+  margin-top: 5px;
+  margin-right: 10px;
+}
 </style>

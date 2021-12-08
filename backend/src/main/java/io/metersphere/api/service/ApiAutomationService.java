@@ -243,8 +243,7 @@ public class ApiAutomationService {
     }
 
     public List<ApiScenarioWithBLOBs> listAll(ApiScenarioBatchRequest request) {
-        ServiceUtils.getSelectAllIds(request, request.getCondition(),
-                (query) -> extApiScenarioMapper.selectIdsByQuery(query));
+        ServiceUtils.getSelectAllIds(request, request.getCondition(), (query) -> extApiScenarioMapper.selectIdsByQuery(query));
         List<ApiScenarioWithBLOBs> list = extApiScenarioMapper.selectIds(request.getIds());
         return list;
     }
@@ -254,8 +253,7 @@ public class ApiAutomationService {
     }
 
     public List<String> idAll(ApiScenarioBatchRequest request) {
-        ServiceUtils.getSelectAllIds(request, request.getCondition(),
-                (query) -> extApiScenarioMapper.selectIdsByQuery(query));
+        ServiceUtils.getSelectAllIds(request, request.getCondition(), (query) -> extApiScenarioMapper.selectIdsByQuery(query));
         return request.getIds();
     }
 
@@ -380,10 +378,7 @@ public class ApiAutomationService {
 
     private void checkCustomNumExist(SaveApiScenarioRequest request) {
         ApiScenarioExample example = new ApiScenarioExample();
-        example.createCriteria()
-                .andCustomNumEqualTo(request.getCustomNum())
-                .andProjectIdEqualTo(request.getProjectId())
-                .andIdNotEqualTo(request.getId());
+        example.createCriteria().andCustomNumEqualTo(request.getCustomNum()).andProjectIdEqualTo(request.getProjectId()).andIdNotEqualTo(request.getId());
         List<ApiScenario> list = apiScenarioMapper.selectByExample(example);
         if (CollectionUtils.isNotEmpty(list)) {
             MSException.throwException("自定义ID " + request.getCustomNum() + " 已存在！");
@@ -392,10 +387,7 @@ public class ApiAutomationService {
 
     private boolean isCustomNumExist(ApiScenarioWithBLOBs blobs) {
         ApiScenarioExample example = new ApiScenarioExample();
-        example.createCriteria()
-                .andCustomNumEqualTo(blobs.getCustomNum())
-                .andProjectIdEqualTo(blobs.getProjectId())
-                .andIdNotEqualTo(blobs.getId());
+        example.createCriteria().andCustomNumEqualTo(blobs.getCustomNum()).andProjectIdEqualTo(blobs.getProjectId()).andIdNotEqualTo(blobs.getId());
         List<ApiScenario> list = apiScenarioMapper.selectByExample(example);
         if (CollectionUtils.isNotEmpty(list)) {
             return true;
@@ -490,8 +482,7 @@ public class ApiAutomationService {
     public Set<String> getRequestIds(String scenarioDefinition) {
         MsScenario msScenario = parseScenarioDefinition(scenarioDefinition);
         List<MsHTTPSamplerProxy> httpSampleFromHashTree = MsHTTPSamplerProxy.findHttpSampleFromHashTree(msScenario);
-        return httpSampleFromHashTree.stream()
-                .map(MsHTTPSamplerProxy::getId).collect(Collectors.toSet());
+        return httpSampleFromHashTree.stream().map(MsHTTPSamplerProxy::getId).collect(Collectors.toSet());
     }
 
     public ApiScenarioWithBLOBs buildSaveScenario(SaveApiScenarioRequest request) {
@@ -567,10 +558,19 @@ public class ApiAutomationService {
     }
 
     public void delete(String id) {
-        //及连删除外键表
-        this.preDelete(id);
-        testPlanScenarioCaseService.deleteByScenarioId(id);
-        apiScenarioMapper.deleteByPrimaryKey(id);
+        ApiScenarioWithBLOBs scenario = apiScenarioMapper.selectByPrimaryKey(id);
+        if (scenario == null) {
+            return;
+        }
+        ApiScenarioExample example = new ApiScenarioExample();
+        example.createCriteria().andRefIdEqualTo(scenario.getRefId());
+        List<ApiScenario> apiScenarios = apiScenarioMapper.selectByExample(example);
+        apiScenarios.forEach(s -> {
+            //及连删除外键表
+            this.preDelete(s.getId());
+            testPlanScenarioCaseService.deleteByScenarioId(s.getId());
+            apiScenarioMapper.deleteByPrimaryKey(s.getId());
+        });
     }
 
     private void deleteFollows(String id) {
@@ -593,8 +593,7 @@ public class ApiAutomationService {
         List<TestPlanApiScenario> testPlanApiScenarioList = testPlanApiScenarioMapper.selectByExample(example);
 
         List<String> idList = new ArrayList<>(testPlanApiScenarioList.size());
-        for (TestPlanApiScenario api :
-                testPlanApiScenarioList) {
+        for (TestPlanApiScenario api : testPlanApiScenarioList) {
             idList.add(api.getId());
         }
         example = new TestPlanApiScenarioExample();
@@ -613,15 +612,6 @@ public class ApiAutomationService {
         ApiScenarioWithBLOBs apiScenarioWithBLOBs = apiScenarioMapper.selectByPrimaryKey(scenarioId);
         String scenarioDefinition = apiScenarioWithBLOBs.getScenarioDefinition();
         deleteBodyFile(scenarioDefinition);
-    }
-
-    public void deleteBodyFileByScenarioIds(List<String> ids) {
-        ApiScenarioExample example = new ApiScenarioExample();
-        example.createCriteria().andIdIn(ids);
-        List<ApiScenarioWithBLOBs> apiScenarios = apiScenarioMapper.selectByExampleWithBLOBs(example);
-        apiScenarios.forEach((item) -> {
-            deleteBodyFile(item.getScenarioDefinition());
-        });
     }
 
     public void deleteBodyFile(String scenarioDefinition) {
@@ -649,59 +639,51 @@ public class ApiAutomationService {
         }
     }
 
-    public void preDeleteBatch(List<String> scenarioIds) {
-        deleteApiScenarioReport(scenarioIds);
-
-        List<String> testPlanApiScenarioIdList = new ArrayList<>();
-        for (String id : scenarioIds) {
-            TestPlanApiScenarioExample example = new TestPlanApiScenarioExample();
-            example.createCriteria().andApiScenarioIdEqualTo(id);
-            List<TestPlanApiScenario> testPlanApiScenarioList = testPlanApiScenarioMapper.selectByExample(example);
-            for (TestPlanApiScenario api : testPlanApiScenarioList) {
-                if (!testPlanApiScenarioIdList.contains(api.getId())) {
-                    testPlanApiScenarioIdList.add(api.getId());
-                }
-            }
-
-            scheduleService.deleteByResourceId(id, ScheduleGroup.API_SCENARIO_TEST.name());
-            deleteFollows(id);
-        }
-        if (!testPlanApiScenarioIdList.isEmpty()) {
-            TestPlanApiScenarioExample example = new TestPlanApiScenarioExample();
-            example.createCriteria().andIdIn(testPlanApiScenarioIdList);
-            testPlanApiScenarioMapper.deleteByExample(example);
-        }
-        // 删除引用关系
-        relationshipEdgeService.delete(scenarioIds);
-        deleteBodyFileByScenarioIds(scenarioIds);
-    }
-
     public void deleteBatch(List<String> ids) {
-        // 删除外键表
-        preDeleteBatch(ids);
         ApiScenarioExample example = new ApiScenarioExample();
         example.createCriteria().andIdIn(ids);
-        apiScenarioMapper.deleteByExample(example);
+        List<ApiScenario> apiScenarios = apiScenarioMapper.selectByExample(example);
+        apiScenarios.forEach(apiScenario -> this.delete(apiScenario.getId()));
     }
 
     public void removeToGc(List<String> apiIds) {
-        ApiScenarioExampleWithOperation example = new ApiScenarioExampleWithOperation();
-        example.createCriteria().andIdIn(apiIds);
-        example.setOperator(SessionUtils.getUserId());
-        example.setOperationTime(System.currentTimeMillis());
-        extApiScenarioMapper.removeToGcByExample(example);
-        //将这些场景的定时任务删除掉
         for (String id : apiIds) {
-            scheduleService.deleteByResourceId(id, ScheduleGroup.API_SCENARIO_TEST.name());
+            ApiScenarioWithBLOBs scenario = apiScenarioMapper.selectByPrimaryKey(id);
+            if (scenario == null) {
+                return;
+            }
+            ApiScenarioExampleWithOperation example = new ApiScenarioExampleWithOperation();
+            example.createCriteria().andRefIdEqualTo(scenario.getRefId());
+            example.setOperator(SessionUtils.getUserId());
+            example.setOperationTime(System.currentTimeMillis());
+            extApiScenarioMapper.removeToGcByExample(example);
+            ApiScenarioRequest request = new ApiScenarioRequest();
+            request.setRefId(scenario.getRefId());
+            List<String> scenarioIds = extApiScenarioMapper.selectIdsByQuery(request);
+            //将这些场景的定时任务删除掉
+            scenarioIds.forEach(scenarioId -> scheduleService.deleteByResourceId(scenarioId, ScheduleGroup.API_SCENARIO_TEST.name()));
         }
     }
 
     public void reduction(List<String> ids) {
-        if (CollectionUtils.isNotEmpty(ids)) {
-            extApiScenarioMapper.checkOriginalStatusByIds(ids);
+        if (CollectionUtils.isEmpty(ids)) {
+            return;
+        }
+        ids.forEach(id -> {
+            ApiScenarioWithBLOBs scenario = apiScenarioMapper.selectByPrimaryKey(id);
+            if (scenario == null) {
+                return;
+            }
+            ApiScenarioRequest request = new ApiScenarioRequest();
+            request.setRefId(scenario.getRefId());
+            HashMap<String, List<String>> filters = new HashMap<>();
+            filters.put("status", Collections.singletonList(ScenarioStatus.Trash.name()));
+            request.setFilters(filters);
+            List<String> scenarioIds = extApiScenarioMapper.selectIdsByQuery(request);
+            extApiScenarioMapper.checkOriginalStatusByIds(scenarioIds);
             //检查原来模块是否还在
             ApiScenarioExample example = new ApiScenarioExample();
-            example.createCriteria().andIdIn(ids);
+            example.createCriteria().andIdIn(scenarioIds);
             List<ApiScenario> scenarioList = apiScenarioMapper.selectByExample(example);
             Map<String, List<ApiScenario>> nodeMap = new HashMap<>();
             for (ApiScenario api : scenarioList) {
@@ -740,17 +722,13 @@ public class ApiAutomationService {
                     }
                 }
             }
-            extApiScenarioMapper.reduction(ids);
-        }
+            extApiScenarioMapper.reduction(scenarioIds);
+        });
     }
 
     private void checkNameExist(SaveApiScenarioRequest request) {
         ApiScenarioExample example = new ApiScenarioExample();
-        example.createCriteria().andNameEqualTo(request.getName())
-                .andProjectIdEqualTo(request.getProjectId())
-                .andStatusNotEqualTo("Trash")
-                .andIdNotEqualTo(request.getId())
-                .andVersionIdEqualTo(request.getVersionId());
+        example.createCriteria().andNameEqualTo(request.getName()).andProjectIdEqualTo(request.getProjectId()).andStatusNotEqualTo("Trash").andIdNotEqualTo(request.getId()).andVersionIdEqualTo(request.getVersionId());
         if (apiScenarioMapper.countByExample(example) > 0) {
             MSException.throwException(Translator.get("automation_name_already_exists"));
         }
@@ -991,8 +969,7 @@ public class ApiAutomationService {
 
     public byte[] loadFileAsBytes(FileOperationRequest fileOperationRequest) {
         File file = new File(FileUtils.BODY_FILE_DIR + "/" + fileOperationRequest.getId() + "_" + fileOperationRequest.getName());
-        try (FileInputStream fis = new FileInputStream(file);
-             ByteArrayOutputStream bos = new ByteArrayOutputStream(1000);) {
+        try (FileInputStream fis = new FileInputStream(file); ByteArrayOutputStream bos = new ByteArrayOutputStream(1000);) {
             byte[] b = new byte[1000];
             int n;
             while ((n = fis.read(b)) != -1) {
@@ -1052,15 +1029,13 @@ public class ApiAutomationService {
 
             // 多态JSON普通转换会丢失内容，需要通过 ObjectMapper 获取
             if (element != null && StringUtils.isNotEmpty(element.getString("hashTree"))) {
-                LinkedList<MsTestElement> elements = mapper.readValue(element.getString("hashTree"),
-                        new TypeReference<LinkedList<MsTestElement>>() {
-                        });
+                LinkedList<MsTestElement> elements = mapper.readValue(element.getString("hashTree"), new TypeReference<LinkedList<MsTestElement>>() {
+                });
                 scenario.setHashTree(elements);
             }
             if (element != null && StringUtils.isNotEmpty(element.getString("variables"))) {
-                LinkedList<ScenarioVariable> variables = mapper.readValue(element.getString("variables"),
-                        new TypeReference<LinkedList<ScenarioVariable>>() {
-                        });
+                LinkedList<ScenarioVariable> variables = mapper.readValue(element.getString("variables"), new TypeReference<LinkedList<ScenarioVariable>>() {
+                });
                 scenario.setVariables(variables);
             }
         } catch (Exception e) {
@@ -1172,8 +1147,7 @@ public class ApiAutomationService {
     private void checkEnv(RunScenarioRequest request, List<ApiScenarioWithBLOBs> apiScenarios) {
         if (StringUtils.equals(request.getRequestOriginator(), "TEST_PLAN")) {
             this.checkPlanScenarioEnv(request);
-        } else if (StringUtils.isNotBlank(request.getRunMode()) &&
-                StringUtils.equalsAny(request.getRunMode(), ApiRunMode.SCENARIO.name(), ApiRunMode.SCENARIO_PLAN.name(), ApiRunMode.JENKINS_SCENARIO_PLAN.name())) {
+        } else if (StringUtils.isNotBlank(request.getRunMode()) && StringUtils.equalsAny(request.getRunMode(), ApiRunMode.SCENARIO.name(), ApiRunMode.SCENARIO_PLAN.name(), ApiRunMode.JENKINS_SCENARIO_PLAN.name())) {
             StringBuilder builder = new StringBuilder();
             for (ApiScenarioWithBLOBs apiScenarioWithBLOBs : apiScenarios) {
                 try {
@@ -1231,8 +1205,7 @@ public class ApiAutomationService {
      * @return
      */
     public String modeRun(RunScenarioRequest request) {
-        ServiceUtils.getSelectAllIds(request, request.getCondition(),
-                (query) -> extApiScenarioMapper.selectIdsByQuery(query));
+        ServiceUtils.getSelectAllIds(request, request.getCondition(), (query) -> extApiScenarioMapper.selectIdsByQuery(query));
 
         List<String> ids = request.getIds();
         // 生成集成报告
@@ -1294,18 +1267,14 @@ public class ApiAutomationService {
 
         if (request.getConfig() != null && StringUtils.equals(request.getConfig().getReportType(), RunModeConstants.SET_REPORT.toString()) && StringUtils.isNotEmpty(request.getConfig().getReportName())) {
             request.getConfig().setReportId(UUID.randomUUID().toString());
-            APIScenarioReportResult report = createScenarioReport(request.getConfig().getReportId(),
-                    JSON.toJSONString(CollectionUtils.isNotEmpty(scenarioIds) && scenarioIds.size() > 50 ? scenarioIds.subList(0, 50) : scenarioIds),
-                    scenarioNames.length() >= 3000 ? scenarioNames.substring(0, 2000) : scenarioNames.deleteCharAt(scenarioNames.toString().length() - 1).toString(),
-                    ReportTriggerMode.MANUAL.name(), ExecuteType.Saved.name(), request.getProjectId(), request.getReportUserID(), request.getConfig(), JSON.toJSONString(scenarioIds));
+            APIScenarioReportResult report = createScenarioReport(request.getConfig().getReportId(), JSON.toJSONString(CollectionUtils.isNotEmpty(scenarioIds) && scenarioIds.size() > 50 ? scenarioIds.subList(0, 50) : scenarioIds), scenarioNames.length() >= 3000 ? scenarioNames.substring(0, 2000) : scenarioNames.deleteCharAt(scenarioNames.toString().length() - 1).toString(), ReportTriggerMode.MANUAL.name(), ExecuteType.Saved.name(), request.getProjectId(), request.getReportUserID(), request.getConfig(), JSON.toJSONString(scenarioIds));
 
             report.setName(request.getConfig().getReportName());
             report.setId(serialReportId);
             apiScenarioReportMapper.insert(report);
             // 增加并行集合报告
             if (request.getConfig() != null && request.getConfig().getMode().equals(RunModeConstants.PARALLEL.toString())) {
-                List<String> reportIds = executeQueue.entrySet().stream()
-                        .map(reports -> reports.getKey()).collect(Collectors.toList());
+                List<String> reportIds = executeQueue.entrySet().stream().map(reports -> reports.getKey()).collect(Collectors.toList());
                 ReportCounter counter = new ReportCounter();
                 counter.setCompletedIds(new LinkedList<>());
                 if (CollectionUtils.isNotEmpty(request.getConfig().getTestResources())) {
@@ -1374,11 +1343,9 @@ public class ApiAutomationService {
             }
             if (request.isTestPlanScheduleJob()) {
                 String savedScenarioId = testPlanScenarioId + ":" + request.getTestPlanReportId();
-                report = createScenarioReport(reportId, savedScenarioId, scenario.getName(), request.getTriggerMode(),
-                        request.getExecuteType(), projectId, request.getReportUserID(), request.getConfig(), scenario.getId());
+                report = createScenarioReport(reportId, savedScenarioId, scenario.getName(), request.getTriggerMode(), request.getExecuteType(), projectId, request.getReportUserID(), request.getConfig(), scenario.getId());
             } else {
-                report = createScenarioReport(reportId, testPlanScenarioId, scenario.getName(), request.getTriggerMode(),
-                        request.getExecuteType(), projectId, request.getReportUserID(), request.getConfig(), scenario.getId());
+                report = createScenarioReport(reportId, testPlanScenarioId, scenario.getName(), request.getTriggerMode(), request.getExecuteType(), projectId, request.getReportUserID(), request.getConfig(), scenario.getId());
             }
             if (report != null && StringUtils.isNotEmpty(request.getTestPlanReportId())) {
                 Map<String, String> scenarioReportIdMap = new HashMap<>();
@@ -1435,8 +1402,7 @@ public class ApiAutomationService {
             }
             APIScenarioReportResult report;
             Map<String, String> planEnvMap = new HashMap<>();
-            report = createScenarioReport(reportId, ExecuteType.Marge.name().equals(request.getExecuteType()) ? serialReportId : item.getId(), item.getName(), request.getTriggerMode(),
-                    request.getExecuteType(), item.getProjectId(), request.getReportUserID(), request.getConfig(), item.getId());
+            report = createScenarioReport(reportId, ExecuteType.Marge.name().equals(request.getExecuteType()) ? serialReportId : item.getId(), item.getName(), request.getTriggerMode(), request.getExecuteType(), item.getProjectId(), request.getReportUserID(), request.getConfig(), item.getId());
 
             try {
                 if (request.getConfig() != null && StringUtils.isNotBlank(request.getConfig().getResourcePoolId())) {
@@ -1559,8 +1525,7 @@ public class ApiAutomationService {
                     }
                     // 清理未执行的队列
                     if (reportIds.size() < executeQueue.size() && StringUtils.isNotEmpty(serialReportId)) {
-                        List<String> removeList = executeQueue.entrySet().stream().filter(map -> !reportIds.contains(map.getKey()))
-                                .map(map -> map.getKey()).collect(Collectors.toList());
+                        List<String> removeList = executeQueue.entrySet().stream().filter(map -> !reportIds.contains(map.getKey())).map(map -> map.getKey()).collect(Collectors.toList());
                         ApiScenarioReportExample example = new ApiScenarioReportExample();
                         example.createCriteria().andIdIn(removeList);
                         apiScenarioReportMapper.deleteByExample(example);
@@ -1621,8 +1586,7 @@ public class ApiAutomationService {
                 }
                 jMeterService.runTest(testId, reportId, request.getRunMode(), testPlanScenarioId, request.getConfig());
             } else {
-                jMeterService.runLocal(reportId, request.getConfig(), executeQueue.get(reportId).getHashTree(),
-                        TriggerMode.BATCH.name().equals(request.getTriggerMode()) ? TriggerMode.BATCH.name() : request.getReportId(), request.getRunMode());
+                jMeterService.runLocal(reportId, request.getConfig(), executeQueue.get(reportId).getHashTree(), TriggerMode.BATCH.name().equals(request.getTriggerMode()) ? TriggerMode.BATCH.name() : request.getReportId(), request.getRunMode());
             }
         }
     }
@@ -1672,15 +1636,13 @@ public class ApiAutomationService {
                 group.setOnSampleError(scenario.getOnSampleError());
                 // 多态JSON普通转换会丢失内容，需要通过 ObjectMapper 获取
                 if (element != null && StringUtils.isNotEmpty(element.getString("hashTree"))) {
-                    LinkedList<MsTestElement> elements = mapper.readValue(element.getString("hashTree"),
-                            new TypeReference<LinkedList<MsTestElement>>() {
-                            });
+                    LinkedList<MsTestElement> elements = mapper.readValue(element.getString("hashTree"), new TypeReference<LinkedList<MsTestElement>>() {
+                    });
                     scenario.setHashTree(elements);
                 }
                 if (StringUtils.isNotEmpty(element.getString("variables"))) {
-                    LinkedList<ScenarioVariable> variables = mapper.readValue(element.getString("variables"),
-                            new TypeReference<LinkedList<ScenarioVariable>>() {
-                            });
+                    LinkedList<ScenarioVariable> variables = mapper.readValue(element.getString("variables"), new TypeReference<LinkedList<ScenarioVariable>>() {
+                    });
                     scenario.setVariables(variables);
                 }
                 group.setEnableCookieShare(scenario.isEnableCookieShare());
@@ -1715,15 +1677,12 @@ public class ApiAutomationService {
 
                         if (request.isTestPlanScheduleJob()) {
                             String savedScenarioId = testPlanScenarioId + ":" + request.getTestPlanReportId();
-                            report = createScenarioReport(group.getName(), savedScenarioId, item.getName(), request.getTriggerMode(),
-                                    request.getExecuteType(), projectId, request.getReportUserID(), request.getConfig(), item.getId());
+                            report = createScenarioReport(group.getName(), savedScenarioId, item.getName(), request.getTriggerMode(), request.getExecuteType(), projectId, request.getReportUserID(), request.getConfig(), item.getId());
                         } else {
-                            report = createScenarioReport(group.getName(), testPlanScenarioId, item.getName(), request.getTriggerMode() == null ? ReportTriggerMode.MANUAL.name() : request.getTriggerMode(),
-                                    request.getExecuteType(), projectId, request.getReportUserID(), request.getConfig(), item.getId());
+                            report = createScenarioReport(group.getName(), testPlanScenarioId, item.getName(), request.getTriggerMode() == null ? ReportTriggerMode.MANUAL.name() : request.getTriggerMode(), request.getExecuteType(), projectId, request.getReportUserID(), request.getConfig(), item.getId());
                         }
                     } else {
-                        report = createScenarioReport(group.getName(), item.getId(), item.getName(), request.getTriggerMode() == null ? ReportTriggerMode.MANUAL.name() : request.getTriggerMode(),
-                                request.getExecuteType(), item.getProjectId(), request.getReportUserID(), request.getConfig(), item.getId());
+                        report = createScenarioReport(group.getName(), item.getId(), item.getName(), request.getTriggerMode() == null ? ReportTriggerMode.MANUAL.name() : request.getTriggerMode(), request.getExecuteType(), item.getProjectId(), request.getReportUserID(), request.getConfig(), item.getId());
                     }
                     batchMapper.insert(report);
                     reportIds.add(group.getName());
@@ -1753,11 +1712,9 @@ public class ApiAutomationService {
             String envType = testPlanApiScenarios.getEnvironmentType();
             String envJson = testPlanApiScenarios.getEnvironment();
             String envGroupId = testPlanApiScenarios.getEnvironmentGroupId();
-            if (StringUtils.equals(envType, EnvironmentType.JSON.toString())
-                    && StringUtils.isNotBlank(envJson)) {
+            if (StringUtils.equals(envType, EnvironmentType.JSON.toString()) && StringUtils.isNotBlank(envJson)) {
                 envMap = JSON.parseObject(testPlanApiScenarios.getEnvironment(), Map.class);
-            } else if (StringUtils.equals(envType, EnvironmentType.GROUP.name())
-                    && StringUtils.isNotBlank(envGroupId)) {
+            } else if (StringUtils.equals(envType, EnvironmentType.GROUP.name()) && StringUtils.isNotBlank(envGroupId)) {
                 envMap = environmentGroupProjectService.getEnvMap(envGroupId);
             } else {
                 envMap = new HashMap<>();
@@ -1820,8 +1777,7 @@ public class ApiAutomationService {
      * @return
      */
     public String execute(RunScenarioRequest request) {
-        ServiceUtils.getSelectAllIds(request, request.getCondition(),
-                (query) -> extApiScenarioMapper.selectIdsByQuery(query));
+        ServiceUtils.getSelectAllIds(request, request.getCondition(), (query) -> extApiScenarioMapper.selectIdsByQuery(query));
         List<String> ids = request.getIds();
         //检查是否有正在执行中的情景
 //        this.checkScenarioIsRunning(ids);
@@ -1829,8 +1785,7 @@ public class ApiAutomationService {
         ids.forEach(item -> {
             idStr.append("\"").append(item).append("\"").append(",");
         });
-        List<ApiScenarioWithBLOBs> apiScenarios = extApiScenarioMapper.
-                selectByIds(idStr.toString().substring(0, idStr.toString().length() - 1), "\"" + StringUtils.join(ids, ",") + "\"");
+        List<ApiScenarioWithBLOBs> apiScenarios = extApiScenarioMapper.selectByIds(idStr.toString().substring(0, idStr.toString().length() - 1), "\"" + StringUtils.join(ids, ",") + "\"");
 
         String runMode = ApiRunMode.SCENARIO.name();
         if (StringUtils.isNotBlank(request.getRunMode()) && StringUtils.equals(request.getRunMode(), ApiRunMode.SCENARIO_PLAN.name())) {
@@ -1924,8 +1879,7 @@ public class ApiAutomationService {
             MSException.throwException(e.getMessage());
         }
 
-        APIScenarioReportResult report = createScenarioReport(request.getId(), request.getScenarioId(), request.getScenarioName(), ReportTriggerMode.MANUAL.name(), request.getExecuteType(), request.getProjectId(),
-                SessionUtils.getUserId(), request.getConfig(), request.getId());
+        APIScenarioReportResult report = createScenarioReport(request.getId(), request.getScenarioId(), request.getScenarioName(), ReportTriggerMode.MANUAL.name(), request.getExecuteType(), request.getProjectId(), SessionUtils.getUserId(), request.getConfig(), request.getId());
         apiScenarioReportMapper.insert(report);
 
         uploadBodyFiles(request.getBodyFileRequestIds(), bodyFiles);
@@ -2135,13 +2089,11 @@ public class ApiAutomationService {
 
     private void addOrUpdateApiScenarioCronJob(Schedule request) {
         if (StringUtils.equals(request.getGroup(), ScheduleGroup.TEST_PLAN_TEST.name())) {
-            scheduleService.addOrUpdateCronJob(
-                    request, TestPlanTestJob.getJobKey(request.getResourceId()), TestPlanTestJob.getTriggerKey(request.getResourceId()), TestPlanTestJob.class);
+            scheduleService.addOrUpdateCronJob(request, TestPlanTestJob.getJobKey(request.getResourceId()), TestPlanTestJob.getTriggerKey(request.getResourceId()), TestPlanTestJob.class);
         } else if (StringUtils.equals(request.getGroup(), ScheduleGroup.SWAGGER_IMPORT.name())) {
             scheduleService.addOrUpdateCronJob(request, SwaggerUrlImportJob.getJobKey(request.getResourceId()), SwaggerUrlImportJob.getTriggerKey(request.getResourceId()), SwaggerUrlImportJob.class);
         } else {
-            scheduleService.addOrUpdateCronJob(
-                    request, ApiScenarioTestJob.getJobKey(request.getResourceId()), ApiScenarioTestJob.getTriggerKey(request.getResourceId()), ApiScenarioTestJob.class);
+            scheduleService.addOrUpdateCronJob(request, ApiScenarioTestJob.getJobKey(request.getResourceId()), ApiScenarioTestJob.getTriggerKey(request.getResourceId()), ApiScenarioTestJob.class);
         }
 
     }
@@ -2171,8 +2123,7 @@ public class ApiAutomationService {
 
     public void bathEdit(ApiScenarioBatchRequest request) {
 
-        ServiceUtils.getSelectAllIds(request, request.getCondition(),
-                (query) -> extApiScenarioMapper.selectIdsByQuery(query));
+        ServiceUtils.getSelectAllIds(request, request.getCondition(), (query) -> extApiScenarioMapper.selectIdsByQuery(query));
 
         if (StringUtils.isNotBlank(request.getEnvironmentId())) {
             bathEditEnv(request);
@@ -2187,9 +2138,7 @@ public class ApiAutomationService {
             List<ApiMethodUrlDTO> useUrl = this.parseUrl(apiScenarioWithBLOBs);
             apiScenarioWithBLOBs.setUseUrl(JSONArray.toJSONString(useUrl));
         }
-        apiScenarioMapper.updateByExampleSelective(
-                apiScenarioWithBLOBs,
-                apiScenarioExample);
+        apiScenarioMapper.updateByExampleSelective(apiScenarioWithBLOBs, apiScenarioExample);
 //        apiScenarioReferenceIdService.saveByApiScenario(apiScenarioWithBLOBs);
     }
 
@@ -2211,15 +2160,11 @@ public class ApiAutomationService {
     public List<ApiScenarioWithBLOBs> getSameScenario(ApiScenarioWithBLOBs request) {
         ApiScenarioExample example = new ApiScenarioExample();
         ApiScenarioExample.Criteria criteria = example.createCriteria();
-        criteria.andProjectIdEqualTo(request.getProjectId())
-                .andStatusNotEqualTo("Trash")
-                .andNameEqualTo(request.getName());
+        criteria.andProjectIdEqualTo(request.getProjectId()).andStatusNotEqualTo("Trash").andNameEqualTo(request.getName());
         if (StringUtils.isNotBlank(request.getId())) {
             // id 不为空 则判断，id一样或者名字一样则是同一个用例
             ApiScenarioExample.Criteria criteria1 = example.createCriteria();
-            criteria1.andProjectIdEqualTo(request.getProjectId())
-                    .andStatusNotEqualTo("Trash")
-                    .andIdEqualTo(request.getId());
+            criteria1.andProjectIdEqualTo(request.getProjectId()).andStatusNotEqualTo("Trash").andIdEqualTo(request.getId());
             example.or(criteria1);
         }
         return apiScenarioMapper.selectByExampleWithBLOBs(example);
@@ -2271,14 +2216,10 @@ public class ApiAutomationService {
             ApiScenarioExample example = new ApiScenarioExample();
             ApiScenarioExample.Criteria criteria = example.createCriteria();
             if (CollectionUtils.isEmpty(sameRequest)) {
-                criteria.andCustomNumEqualTo(scenarioWithBLOBs.getCustomNum())
-                        .andProjectIdEqualTo(scenarioWithBLOBs.getProjectId());
+                criteria.andCustomNumEqualTo(scenarioWithBLOBs.getCustomNum()).andProjectIdEqualTo(scenarioWithBLOBs.getProjectId());
             } else {
                 if (StringUtils.equals("fullCoverage", apiTestImportRequest.getModeId())) {
-                    criteria.andNameEqualTo(scenarioWithBLOBs.getName())
-                            .andCustomNumEqualTo(scenarioWithBLOBs.getCustomNum())
-                            .andProjectIdEqualTo(scenarioWithBLOBs.getProjectId())
-                            .andIdNotEqualTo(sameRequest.get(0).getId());
+                    criteria.andNameEqualTo(scenarioWithBLOBs.getName()).andCustomNumEqualTo(scenarioWithBLOBs.getCustomNum()).andProjectIdEqualTo(scenarioWithBLOBs.getProjectId()).andIdNotEqualTo(sameRequest.get(0).getId());
                 }
 
             }
@@ -2370,8 +2311,7 @@ public class ApiAutomationService {
     public ScenarioImport scenarioImport(MultipartFile file, ApiTestImportRequest request) {
         ApiImportParser apiImportParser = ScenarioImportParserFactory.getImportParser(request.getPlatform());
         ScenarioImport apiImport = null;
-        Optional.ofNullable(file)
-                .ifPresent(item -> request.setFileName(file.getOriginalFilename().substring(0, file.getOriginalFilename().lastIndexOf("."))));
+        Optional.ofNullable(file).ifPresent(item -> request.setFileName(file.getOriginalFilename().substring(0, file.getOriginalFilename().lastIndexOf("."))));
         try {
             apiImport = (ScenarioImport) Objects.requireNonNull(apiImportParser).parse(file == null ? null : file.getInputStream(), request);
         } catch (Exception e) {
@@ -2431,8 +2371,7 @@ public class ApiAutomationService {
     }
 
     private List<ApiScenarioWithBLOBs> getExportResult(ApiScenarioBatchRequest request) {
-        ServiceUtils.getSelectAllIds(request, request.getCondition(),
-                (query) -> extApiScenarioMapper.selectIdsByQuery(query));
+        ServiceUtils.getSelectAllIds(request, request.getCondition(), (query) -> extApiScenarioMapper.selectIdsByQuery(query));
         ApiScenarioExample example = new ApiScenarioExample();
         example.createCriteria().andIdIn(request.getIds());
         List<ApiScenarioWithBLOBs> apiScenarioWithBLOBs = apiScenarioMapper.selectByExampleWithBLOBs(example);
@@ -2557,15 +2496,13 @@ public class ApiAutomationService {
     }
 
     public void removeToGcByBatch(ApiScenarioBatchRequest request) {
-        ServiceUtils.getSelectAllIds(request, request.getCondition(),
-                (query) -> extApiScenarioMapper.selectIdsByQuery(query));
+        ServiceUtils.getSelectAllIds(request, request.getCondition(), (query) -> extApiScenarioMapper.selectIdsByQuery(query));
 
         this.removeToGc(request.getIds());
     }
 
     public void deleteBatchByCondition(ApiScenarioBatchRequest request) {
-        ServiceUtils.getSelectAllIds(request, request.getCondition(),
-                (query) -> extApiScenarioMapper.selectIdsByQuery(query));
+        ServiceUtils.getSelectAllIds(request, request.getCondition(), (query) -> extApiScenarioMapper.selectIdsByQuery(query));
         this.deleteBatch(request.getIds());
     }
 
@@ -2776,8 +2713,7 @@ public class ApiAutomationService {
         if (request.getIds() == null) {
             request.setIds(new ArrayList<>(0));
         }
-        ServiceUtils.getSelectAllIds(request, request.getCondition(),
-                (query) -> extApiScenarioMapper.selectIdsByQuery(query));
+        ServiceUtils.getSelectAllIds(request, request.getCondition(), (query) -> extApiScenarioMapper.selectIdsByQuery(query));
 
         if (!request.getIds().isEmpty()) {
             ApiScenarioExample example = new ApiScenarioExample();
@@ -2809,8 +2745,7 @@ public class ApiAutomationService {
     }
 
     public List<ApiScenarioWithBLOBs> listWithIds(ApiScenarioBatchRequest request) {
-        ServiceUtils.getSelectAllIds(request, request.getCondition(),
-                (query) -> extApiScenarioMapper.selectIdsByQuery(query));
+        ServiceUtils.getSelectAllIds(request, request.getCondition(), (query) -> extApiScenarioMapper.selectIdsByQuery(query));
         List<ApiScenarioWithBLOBs> list = extApiScenarioMapper.listWithIds(request.getIds());
         return list;
     }
@@ -2879,8 +2814,7 @@ public class ApiAutomationService {
     }
 
     public List<JmxInfoDTO> batchGenPerformanceTestJmx(ApiScenarioBatchRequest request) {
-        ServiceUtils.getSelectAllIds(request, request.getCondition(),
-                (query) -> extApiScenarioMapper.selectIdsByQuery(query));
+        ServiceUtils.getSelectAllIds(request, request.getCondition(), (query) -> extApiScenarioMapper.selectIdsByQuery(query));
         List<JmxInfoDTO> returnList = new ArrayList<>();
 
         List<String> ids = request.getIds();
@@ -2904,8 +2838,7 @@ public class ApiAutomationService {
 
     public BatchOperaResponse batchCopy(ApiScenarioBatchRequest batchRequest) {
 
-        ServiceUtils.getSelectAllIds(batchRequest, batchRequest.getCondition(),
-                (query) -> extApiScenarioMapper.selectIdsByQuery(query));
+        ServiceUtils.getSelectAllIds(batchRequest, batchRequest.getCondition(), (query) -> extApiScenarioMapper.selectIdsByQuery(query));
         List<ApiScenarioWithBLOBs> apiScenarioList = extApiScenarioMapper.selectIds(batchRequest.getIds());
         StringBuffer stringBuffer = new StringBuffer();
         for (ApiScenarioWithBLOBs apiModel : apiScenarioList) {
@@ -2918,8 +2851,7 @@ public class ApiAutomationService {
             newModel.setNum(getNextNum(newModel.getProjectId()));
 
             ApiScenarioExample example = new ApiScenarioExample();
-            example.createCriteria().andNameEqualTo(newModel.getName()).
-                    andProjectIdEqualTo(newModel.getProjectId()).andStatusNotEqualTo("Trash").andIdNotEqualTo(newModel.getId());
+            example.createCriteria().andNameEqualTo(newModel.getName()).andProjectIdEqualTo(newModel.getProjectId()).andStatusNotEqualTo("Trash").andIdNotEqualTo(newModel.getId());
             if (apiScenarioMapper.countByExample(example) > 0) {
                 stringBuffer.append(newModel.getName() + ";");
                 continue;
@@ -2964,8 +2896,7 @@ public class ApiAutomationService {
     }
 
     public DeleteCheckResult checkBeforeDelete(ApiScenarioBatchRequest request) {
-        ServiceUtils.getSelectAllIds(request, request.getCondition(),
-                (query) -> extApiScenarioMapper.selectIdsByQuery(query));
+        ServiceUtils.getSelectAllIds(request, request.getCondition(), (query) -> extApiScenarioMapper.selectIdsByQuery(query));
         List<String> deleteIds = request.getIds();
         DeleteCheckResult result = new DeleteCheckResult();
         List<String> checkMsgList = new ArrayList<>();
@@ -3055,9 +2986,7 @@ public class ApiAutomationService {
     }
 
     public void initOrderField() {
-        ServiceUtils.initOrderField(ApiScenarioWithBLOBs.class, ApiScenarioMapper.class,
-                extApiScenarioMapper::selectProjectIds,
-                extApiScenarioMapper::getIdsOrderByUpdateTime);
+        ServiceUtils.initOrderField(ApiScenarioWithBLOBs.class, ApiScenarioMapper.class, extApiScenarioMapper::selectProjectIds, extApiScenarioMapper::getIdsOrderByUpdateTime);
     }
 
     /**
@@ -3066,11 +2995,7 @@ public class ApiAutomationService {
      * @param request
      */
     public void updateOrder(ResetOrderRequest request) {
-        ServiceUtils.updateOrderField(request, ApiScenarioWithBLOBs.class,
-                apiScenarioMapper::selectByPrimaryKey,
-                extApiScenarioMapper::getPreOrder,
-                extApiScenarioMapper::getLastOrder,
-                apiScenarioMapper::updateByPrimaryKeySelective);
+        ServiceUtils.updateOrderField(request, ApiScenarioWithBLOBs.class, apiScenarioMapper::selectByPrimaryKey, extApiScenarioMapper::getPreOrder, extApiScenarioMapper::getLastOrder, apiScenarioMapper::updateByPrimaryKeySelective);
     }
 
     public boolean checkScenarioEnv(ApiScenarioWithBLOBs request) {
