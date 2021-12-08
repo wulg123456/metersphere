@@ -88,10 +88,10 @@ ALTER TABLE load_test
     ADD ref_id VARCHAR(50) NULL;
 
 CREATE INDEX load_test_ref_id_index
-    ON api_definition(ref_id);
+    ON load_test(ref_id);
 
 CREATE INDEX load_test_version_id_index
-    ON api_definition(version_id);
+    ON load_test(version_id);
 
 UPDATE load_test
 SET ref_id = id;
