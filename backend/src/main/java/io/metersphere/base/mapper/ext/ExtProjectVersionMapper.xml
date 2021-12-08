@@ -57,4 +57,12 @@
     <update id="updateLatestToFalse">
         UPDATE project_version set latest = FALSE
     </update>
+
+    <select id="isVersionEnable" resultType="boolean">
+        select version_enable from project where id = #{projectId}
+    </select>
+
+    <update id="changeVersionEnable">
+        update project set version_enable = #{status} where id = #{projectId}
+    </update>
 </mapper>

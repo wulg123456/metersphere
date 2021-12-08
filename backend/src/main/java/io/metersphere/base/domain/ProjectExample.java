@@ -1434,6 +1434,66 @@ public class ProjectExample {
             return (Criteria) this;
         }
 
+        public Criteria andVersionEnableIsNull() {
+            addCriterion("version_enable is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andVersionEnableIsNotNull() {
+            addCriterion("version_enable is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andVersionEnableEqualTo(Boolean value) {
+            addCriterion("version_enable =", value, "versionEnable");
+            return (Criteria) this;
+        }
+
+        public Criteria andVersionEnableNotEqualTo(Boolean value) {
+            addCriterion("version_enable <>", value, "versionEnable");
+            return (Criteria) this;
+        }
+
+        public Criteria andVersionEnableGreaterThan(Boolean value) {
+            addCriterion("version_enable >", value, "versionEnable");
+            return (Criteria) this;
+        }
+
+        public Criteria andVersionEnableGreaterThanOrEqualTo(Boolean value) {
+            addCriterion("version_enable >=", value, "versionEnable");
+            return (Criteria) this;
+        }
+
+        public Criteria andVersionEnableLessThan(Boolean value) {
+            addCriterion("version_enable <", value, "versionEnable");
+            return (Criteria) this;
+        }
+
+        public Criteria andVersionEnableLessThanOrEqualTo(Boolean value) {
+            addCriterion("version_enable <=", value, "versionEnable");
+            return (Criteria) this;
+        }
+
+        public Criteria andVersionEnableIn(List<Boolean> values) {
+            addCriterion("version_enable in", values, "versionEnable");
+            return (Criteria) this;
+        }
+
+        public Criteria andVersionEnableNotIn(List<Boolean> values) {
+            addCriterion("version_enable not in", values, "versionEnable");
+            return (Criteria) this;
+        }
+
+        public Criteria andVersionEnableBetween(Boolean value1, Boolean value2) {
+            addCriterion("version_enable between", value1, value2, "versionEnable");
+            return (Criteria) this;
+        }
+
+        public Criteria andVersionEnableNotBetween(Boolean value1, Boolean value2) {
+            addCriterion("version_enable not between", value1, value2, "versionEnable");
+            return (Criteria) this;
+        }
+
         public Criteria andPlatformIsNull() {
             addCriterion("platform is null");
             return (Criteria) this;

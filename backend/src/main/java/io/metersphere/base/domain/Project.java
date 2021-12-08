@@ -45,6 +45,8 @@ public class Project implements Serializable {
 
     private String azureFilterId;
 
+    private Boolean versionEnable;
+
     private String platform;
 
     private Boolean thirdPartTemplate;

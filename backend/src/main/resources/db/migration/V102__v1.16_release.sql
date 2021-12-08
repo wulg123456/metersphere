@@ -29,6 +29,10 @@ CREATE TABLE IF NOT EXISTS `project_version`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
+ALTER TABLE project
+    ADD version_enable TINYINT(1) DEFAULT 1 NULL;
+
+
 INSERT INTO project_version (id, name, description, status, latest, publish_time, start_time, end_time, create_time,
                              create_user, project_id)
 SELECT UUID(),
@@ -43,10 +47,6 @@ SELECT UUID(),
        'admin',
        id
 FROM project;
-
--- enable version manage
-INSERT INTO system_parameter (param_key, param_value, type, sort)
-VALUES ('project.version.enable', 'true', 'text', 2);
 
 -- api definition
 ALTER TABLE api_definition
@@ -80,7 +80,7 @@ UPDATE api_test_case
     INNER JOIN project_version ON project_version.project_id = api_test_case.project_id
 SET version_id = project_version.id;
 
- -- load_test
+-- load_test
 ALTER TABLE load_test
     ADD version_id VARCHAR(50) NULL;
 
@@ -88,10 +88,10 @@ ALTER TABLE load_test
     ADD ref_id VARCHAR(50) NULL;
 
 CREATE INDEX load_test_ref_id_index
-    ON load_test(ref_id);
+    ON load_test (ref_id);
 
 CREATE INDEX load_test_version_id_index
-    ON load_test(version_id);
+    ON load_test (version_id);
 
 UPDATE load_test
 SET ref_id = id;
