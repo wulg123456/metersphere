@@ -6,7 +6,6 @@ import {
   ORIGIN_COLOR_SHALLOW,
   PRIMARY_COLOR,
   PROJECT_ID,
-  PROJECT_VERSION_ENABLE,
   TokenKey,
   WORKSPACE_ID
 } from "./constants";
@@ -95,11 +94,6 @@ export function hasLicense() {
   return v && v === 'valid';
 }
 
-export function isVersionEnable() {
-  let v = sessionStorage.getItem(PROJECT_VERSION_ENABLE);
-  return v && v === 'true';
-}
-
 export function hasPermissions(...permissions) {
   for (let p of permissions) {
     if (hasPermission(p)) {
@@ -141,10 +135,6 @@ export function saveLocalStorage(response) {
   localStorage.setItem(TokenKey, JSON.stringify(response.data));
   if (!sessionStorage.getItem(PROJECT_ID)) {
     sessionStorage.setItem(PROJECT_ID, response.data.lastProjectId);
-    axios.get('/project/version/enable/' + response.data.lastProjectId)
-      .then(response => {
-        saveProjectVersionEnable(response.data.data);
-      });
   }
   if (!sessionStorage.getItem(WORKSPACE_ID)) {
     sessionStorage.setItem(WORKSPACE_ID, response.data.lastWorkspaceId);
@@ -154,10 +144,6 @@ export function saveLocalStorage(response) {
 export function saveLicense(data) {
   // 保存License
   localStorage.setItem(LicenseKey, data);
-}
-
-export function saveProjectVersionEnable(data) {
-  sessionStorage.setItem(PROJECT_VERSION_ENABLE, data);
 }
 
 export function removeLicense() {

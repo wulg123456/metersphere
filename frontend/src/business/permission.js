@@ -3,7 +3,7 @@ import {TokenKey} from '@/common/js/constants';
 import {
   enableModules,
   hasLicense,
-  hasPermissions, isVersionEnable, removeLicense, saveLicense
+  hasPermissions, removeLicense, saveLicense
 } from "@/common/js/utils";
 import NProgress from 'nprogress'; // progress bar
 import 'nprogress/nprogress.css';
@@ -20,13 +20,6 @@ function checkLicense(el, binding, type) {
   }
 }
 
-function checkVersionEnable(el, binding, type) {
-  let v = isVersionEnable();
-
-  if (!v) {
-    el.parentNode && el.parentNode.removeChild(el);
-  }
-}
 
 function checkRolePermission(el, binding, type) {
   const {value} = binding;
@@ -70,11 +63,6 @@ export const xpack = {
   }
 };
 
-export const versionEnable = {
-  inserted(el, binding) {
-    checkVersionEnable(el, binding);
-  }
-};
 
 export const modules = {
   inserted(el, binding) {

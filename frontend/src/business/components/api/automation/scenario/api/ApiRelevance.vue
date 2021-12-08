@@ -26,7 +26,7 @@
       @currentVersionChange="currentVersionChange"
       ref="apiList">
       <template v-slot:version>
-        <span style="padding-left:10px" v-xpack v-version-enable>
+        <span style="padding-left:10px" v-xpack >
           <el-select size="small" v-model="currentVersion"
                      placeholder="当前版本"
                      clearable>
@@ -53,7 +53,7 @@
       @currentVersionChange="currentVersionChange"
       ref="apiCaseList">
       <template v-slot:version>
-        <span style="padding-left:10px" v-xpack v-version-enable>
+        <span style="padding-left:10px" v-xpack >
           <el-select size="small" v-model="currentVersion"
                      placeholder="当前版本"
                      clearable>

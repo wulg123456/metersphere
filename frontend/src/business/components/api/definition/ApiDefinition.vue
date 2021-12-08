@@ -43,7 +43,7 @@
               right-content="CASE"
             >
               <template v-slot:version>
-                <span style="padding-left:10px" v-xpack v-version-enable>
+                <span style="padding-left:10px" v-xpack >
                   <el-select size="small" v-model="currentVersion" @change="changeVersion"
                              placeholder="当前版本"
                              clearable>
@@ -115,7 +115,7 @@
               :right-button-enable="currentProtocol === 'HTTP' "
             >
               <template v-slot:version>
-                <span style="padding-left:10px" v-xpack v-version-enable>
+                <span style="padding-left:10px" v-xpack >
                   <el-select size="small" v-model="currentVersion" @change="changeVersion"
                              placeholder="当前版本"
                              clearable>

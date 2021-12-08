@@ -61,8 +61,6 @@ Vue.directive('permission', permission);
 
 Vue.directive('xpack', xpack);
 
-Vue.directive('version-enable', versionEnable);
-
 Vue.directive('modules', modules);
 
 //支持左右拖拽

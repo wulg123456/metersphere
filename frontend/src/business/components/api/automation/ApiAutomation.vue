@@ -41,7 +41,7 @@
             @updateInitApiTableOpretion="updateInitApiTableOpretion"
             ref="apiTrashScenarioList">
             <template v-slot:version>
-                <span v-xpack v-version-enable>
+                <span v-xpack >
                   <el-select size="small" v-model="currentVersion" @change="changeVersion"
                              placeholder="当前版本"
                              clearable>
@@ -75,7 +75,7 @@
             @updateInitApiTableOpretion="updateInitApiTableOpretion"
             ref="apiScenarioList">
             <template v-slot:version>
-                <span v-xpack v-version-enable>
+                <span v-xpack >
                   <el-select size="small" v-model="currentVersion" @change="changeVersion"
                              placeholder="当前版本"
                              clearable>
