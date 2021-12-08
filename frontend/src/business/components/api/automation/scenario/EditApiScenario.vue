@@ -1717,7 +1717,9 @@ export default {
       if (api.tags && api.tags.length > 0) {
         api.tags = JSON.parse(api.tags);
       }
-      this.$emit("checkout", api);
+      Object.assign(this.currentScenario, api);
+      this.getApiScenario();
+      this.getVersionHistory();
     },
     create(row) {
       // 创建新版本

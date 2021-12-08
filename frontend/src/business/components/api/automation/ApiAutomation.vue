@@ -58,7 +58,22 @@
             :custom-num="customNum"
             :init-api-table-opretion="initApiTableOpretion"
             @updateInitApiTableOpretion="updateInitApiTableOpretion"
-            ref="apiScenarioList"/>
+            ref="apiScenarioList">
+            <template v-slot:version>
+                <span v-xpack>
+                  <el-select size="small" v-model="currentVersion" @change="changeVersion"
+                             placeholder="当前版本"
+                             clearable>
+                    <el-option
+                      v-for="item in versionOptions"
+                      :key="item.id"
+                      :label="item.name + ' (' + item.status + ')'"
+                      :value="item.id">
+                    </el-option>
+                  </el-select>
+                </span>
+            </template>
+          </ms-api-scenario-list>
         </el-tab-pane>
 
 
@@ -70,7 +85,6 @@
           closable>
           <div class="ms-api-scenario-div">
             <ms-edit-api-scenario @refresh="refresh" @openScenario="editScenario" @closePage="closePage"
-                                  @checkout="checkout"
                                   :currentScenario="item.currentScenario"
                                   :custom-num="customNum" :moduleOptions="moduleOptions" ref="autoScenarioConfig"/>
           </div>
@@ -98,7 +112,7 @@
 
 <script>
 
-import {getCurrentProjectID, getCurrentUser, getUUID, hasPermission} from "@/common/js/utils";
+import {getCurrentProjectID, getCurrentUser, getUUID, hasLicense, hasPermission} from "@/common/js/utils";
 import {PROJECT_ID} from "@/common/js/constants";
 
 export default {
@@ -149,18 +163,21 @@ export default {
       customNum: false,
       //影响API表格刷新的操作。 为了防止高频率刷新模块列表用。如果是模块更新而造成的表格刷新，则不回调模块刷新方法
       initApiTableOpretion: 'init',
+      versionOptions: [],
+      currentVersion: '',
     };
   },
   created() {
     let projectId = this.$route.params.projectId;
-    if(projectId){
+    if (projectId) {
       sessionStorage.setItem(PROJECT_ID, projectId);
     }
   },
   mounted() {
     this.getProject();
     this.getTrashCase();
-    this.init()
+    this.init();
+    this.getVersionOptionList();
   },
   watch: {
     redirectID() {
@@ -314,7 +331,7 @@ export default {
         if (t && this.$store.state.scenarioMap.has(t.currentScenario.id) && this.$store.state.scenarioMap.get(t.currentScenario.id) > 1) {
           message += t.currentScenario.name + "，";
         }
-      })
+      });
       if (message !== "") {
         this.$alert(this.$t('commons.scenario') + " [ " + message.substr(0, message.length - 1) + " ] " + this.$t('commons.confirm_info'), '', {
           confirmButtonText: this.$t('commons.confirm'),
@@ -409,9 +426,6 @@ export default {
       }
       this.$refs.nodeTree.list();
     },
-    checkout() {
-      console.log(123);
-    },
     refreshTree() {
       this.$refs.nodeTree.list();
     },
@@ -434,7 +448,7 @@ export default {
     init() {
       let scenarioData = this.$route.params.scenarioData;
       if (scenarioData) {
-        this.editScenario(scenarioData)
+        this.editScenario(scenarioData);
       }
     },
     editScenario(row) {
@@ -488,6 +502,22 @@ export default {
     },
     updateInitApiTableOpretion(param) {
       this.initApiTableOpretion = param;
+    },
+    getVersionOptionList() {
+      if (hasLicense()) {
+        this.$get('/project/version/get-project-versions/' + getCurrentProjectID(), response => {
+          this.versionOptions = response.data;
+        });
+      }
+    },
+    changeVersion() {
+      if (this.$refs.apiScenarioList) {
+        this.$refs.apiScenarioList.condition.versionId = this.currentVersion || null;
+      }
+      if (this.$refs.apiTrashScenarioList) {
+        this.$refs.apiTrashScenarioList.condition.versionId = this.currentVersion || null;
+      }
+      this.refresh();
     }
   }
 };

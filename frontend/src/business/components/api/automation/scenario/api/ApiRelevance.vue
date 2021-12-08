@@ -17,20 +17,56 @@
     <scenario-relevance-api-list
       v-if="isApiListEnable"
       :project-id="projectId"
+      :version-filters="versionFilters"
+      :current-version="currentVersion"
       :current-protocol="currentProtocol"
       :select-node-ids="selectNodeIds"
       :is-api-list-enable="isApiListEnable"
       @isApiListEnableChange="isApiListEnableChange"
-      ref="apiList"/>
+      @currentVersionChange="currentVersionChange"
+      ref="apiList">
+      <template v-slot:version>
+        <span style="padding-left:10px" v-xpack>
+          <el-select size="small" v-model="currentVersion"
+                     placeholder="当前版本"
+                     clearable>
+            <el-option
+              v-for="item in versionOptions"
+              :key="item.id"
+              :label="item.name + ' (' + item.status + ')'"
+              :value="item.id">
+            </el-option>
+          </el-select>
+        </span>
+      </template>
+    </scenario-relevance-api-list>
 
     <scenario-relevance-case-list
       v-if="!isApiListEnable"
       :project-id="projectId"
+      :version-filters="versionFilters"
+      :current-version="currentVersion"
       :current-protocol="currentProtocol"
       :select-node-ids="selectNodeIds"
       :is-api-list-enable="isApiListEnable"
       @isApiListEnableChange="isApiListEnableChange"
-      ref="apiCaseList"/>
+      @currentVersionChange="currentVersionChange"
+      ref="apiCaseList">
+      <template v-slot:version>
+        <span style="padding-left:10px" v-xpack>
+          <el-select size="small" v-model="currentVersion"
+                     placeholder="当前版本"
+                     clearable>
+            <el-option
+              v-for="item in versionOptions"
+              :key="item.id"
+              :label="item.name + ' (' + item.status + ')'"
+              :value="item.id">
+            </el-option>
+          </el-select>
+        </span>
+      </template>
+    </scenario-relevance-case-list>
 
     <template v-slot:headerBtn>
       <el-button type="primary" @click="copy" :loading="buttonIsWorking" @keydown.enter.native.prevent size="mini">
@@ -53,7 +89,7 @@ import MsMainContainer from "../../../../common/components/MsMainContainer";
 import ScenarioRelevanceApiList from "./RelevanceApiList";
 import RelevanceDialog from "../../../../track/plan/view/comonents/base/RelevanceDialog";
 import TestCaseRelevanceBase from "@/business/components/track/plan/view/comonents/base/TestCaseRelevanceBase";
-import {getUUID} from "@/common/js/utils";
+import {getCurrentProjectID, hasLicense} from "@/common/js/utils";
 
 export default {
   name: "ApiRelevance",
@@ -65,24 +101,28 @@ export default {
   },
   data() {
     return {
-      buttonIsWorking:false,
+      buttonIsWorking: false,
       result: {},
       currentProtocol: null,
       saveOtherPageData: false,
       selectNodeIds: [],
       moduleOptions: {},
       isApiListEnable: true,
-      projectId: ""
-    }
+      projectId: "",
+      versionFilters: [],
+      currentVersion: null,
+      versionOptions: [],
+    };
   },
   watch: {
     projectId() {
       this.refresh();
       this.$refs.nodeTree.list(this.projectId);
+      this.getVersionOptions();
     }
   },
   methods: {
-    changeButtonLoadingType(){
+    changeButtonLoadingType() {
       this.refresh();
       this.buttonIsWorking = false;
     },
@@ -103,14 +143,14 @@ export default {
         let params = this.$refs.apiList.getConditions();
         this.result = this.$post("/api/definition/list/batch", params, (response) => {
           let apis = response.data;
-          if(apis.length === 0){
+          if (apis.length === 0) {
             this.$warning('请选择接口');
             this.buttonIsWorking = false;
-          }else {
+          } else {
             this.$emit('save', apis, 'API', reference);
             this.$refs.baseRelevance.close();
           }
-        },(error) => {
+        }, (error) => {
           this.buttonIsWorking = false;
         });
 
@@ -118,14 +158,14 @@ export default {
         let params = this.$refs.apiCaseList.getConditions();
         this.result = this.$post("/api/testcase/get/caseBLOBs/request", params, (response) => {
           let apiCases = response.data;
-          if(apiCases.length === 0) {
+          if (apiCases.length === 0) {
             this.$warning('请选择案例');
             this.buttonIsWorking = false;
-          }else{
+          } else {
             this.$emit('save', apiCases, 'CASE', reference);
             this.$refs.baseRelevance.close();
           }
-        },(error) => {
+        }, (error) => {
           this.buttonIsWorking = false;
         });
       }
@@ -141,6 +181,9 @@ export default {
     },
     isApiListEnableChange(data) {
       this.isApiListEnable = data;
+    },
+    currentVersionChange(currentVersion) {
+      this.currentVersion = currentVersion;
     },
     nodeChange(node, nodeIds, pNodes) {
       this.selectNodeIds = nodeIds;
@@ -161,8 +204,18 @@ export default {
     setProject(projectId) {
       this.projectId = projectId;
     },
+    getVersionOptions() {
+      if (hasLicense()) {
+        this.$get('/project/version/get-project-versions/' + getCurrentProjectID(), response => {
+          this.versionOptions = response.data;
+          this.versionFilters = response.data.map(u => {
+            return {text: u.name, value: u.id};
+          });
+        });
+      }
+    },
   }
-}
+};
 </script>
 
 <style scoped>

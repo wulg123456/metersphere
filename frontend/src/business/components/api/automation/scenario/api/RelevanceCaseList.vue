@@ -4,6 +4,10 @@
       :is-api-list-enable="isApiListEnable"
       @isApiListEnableChange="isApiListEnableChange">
 
+      <template>
+        <slot name="version"></slot>
+      </template>
+
       <ms-environment-select :project-id="projectId" v-if="isTestPlan" :is-read-only="isReadOnly"
                              @setEnvironment="setEnvironment" ref="msEnvironmentSelect"/>
 
@@ -50,6 +54,16 @@
           <template v-slot:default="scope">
             <ms-tag v-for="(itemName,index)  in scope.row.tags" :key="index" type="success" effect="plain"
                     :content="itemName" style="margin-left: 0px; margin-right: 2px"/>
+          </template>
+        </ms-table-column>
+
+        <ms-table-column
+          :label="$t('project.version.name')"
+          :filters="versionFilters"
+          min-width="100px"
+          prop="versionId">
+          <template v-slot:default="scope">
+            <span>{{ scope.row.versionName }}</span>
           </template>
         </ms-table-column>
 
@@ -142,11 +156,13 @@ export default {
       pageSize: 10,
       total: 0,
       environmentId: ""
-    }
+    };
   },
   props: {
     currentProtocol: String,
     selectNodeIds: Array,
+    versionFilters: Array,
+    currentVersion: String,
     visible: {
       type: Boolean,
       default: false,
@@ -167,7 +183,8 @@ export default {
     planId: String,
     isTestPlan: Boolean
   },
-  created: function () {
+  created() {
+    this.condition.versionId = this.currentVersion || null;
     this.initTable();
   },
   watch: {
@@ -178,6 +195,10 @@ export default {
       this.initTable();
     },
     projectId() {
+      this.initTable();
+    },
+    currentVersion() {
+      this.condition.versionId = this.currentVersion || null;
       this.initTable();
     }
   },
@@ -294,7 +315,7 @@ export default {
       return param;
     }
   },
-}
+};
 </script>
 
 <style scoped>
@@ -314,9 +335,7 @@ export default {
 
 .search-input {
   float: right;
-  width: 300px;
-  margin-bottom: 20px;
-  margin-right: 20px;
+  width: 200px;
 }
 
 .adv-search-bar {

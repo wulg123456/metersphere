@@ -1,6 +1,8 @@
 <template>
   <div>
     <el-card class="table-card-nopadding" v-loading="result.loading">
+      <slot name="version"></slot>
+
       <ms-table-header :condition.sync="condition" @search="selectByParam" title=""
                        :show-create="false" :tip="$t('commons.search_by_id_name_tag')"/>
 
