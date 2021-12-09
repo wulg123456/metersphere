@@ -1,14 +1,14 @@
 <template>
   <ms-container>
-    <ms-main-container>
+    <ms-main-container v-if="loading">
       <el-card class="table-card" v-loading="result.loading">
         <template v-slot:header>
           <ms-table-header :condition.sync="condition" @search="search"
                            :create-permission="['PROJECT_PERFORMANCE_TEST:READ+CREATE']"
-                           :version-options = "versionOptions"
-                           :current-version.sync = "currentVersion"
-                           :is-show-version = true
-                           @changeVersion = "changeVersion"
+                           :version-options="versionOptions"
+                           :current-version.sync="currentVersion"
+                           :is-show-version=true
+                           @changeVersion="changeVersion"
                            @create="create" :createTip="$t('load_test.create')"/>
         </template>
         <ms-table
@@ -37,6 +37,7 @@
             show-overflow-tooltip>
           </el-table-column>
           <el-table-column
+            v-if="versionEnable"
             :label="$t('project.version.name')"
             :filters="versionFilters"
             column-key="versionId"
@@ -135,7 +136,7 @@ export default {
   },
   data() {
     return {
-      tableHeaderKey:"PERFORMANCE_TEST_TABLE",
+      tableHeaderKey: "PERFORMANCE_TEST_TABLE",
       result: {},
       deletePath: "/performance/delete",
       condition: {
@@ -148,7 +149,7 @@ export default {
       currentPage: 1,
       pageSize: 10,
       total: 0,
-      loading: false,
+      loading: true,
       testId: null,
       enableOrderDrag: true,
       operators: [
@@ -178,6 +179,7 @@ export default {
       screenHeight: 'calc(100vh - 200px)',
       versionOptions: [],
       currentVersion: '',
+      versionEnable: false,
     };
   },
   watch: {
@@ -194,11 +196,12 @@ export default {
       return editLoadTestCaseOrder;
     }
   },
-  created: function () {
+  created() {
     this.projectId = getCurrentProjectID();
     this.initTableData();
     this.getMaintainerOptions();
     this.getVersionOptions();
+    this.checkVersionEnable();
   },
   methods: {
     getMaintainerOptions() {
@@ -288,7 +291,7 @@ export default {
     getVersionOptions() {
       if (hasLicense()) {
         this.$get('/project/version/get-project-versions/' + getCurrentProjectID(), response => {
-          this.versionOptions= response.data;
+          this.versionOptions = response.data;
           this.versionFilters = response.data.map(u => {
             return {text: u.name, value: u.id};
           });
@@ -299,6 +302,20 @@ export default {
       this.currentVersion = value || null;
       this.condition.versionId = value || null;
       this.refresh();
+    },
+    checkVersionEnable() {
+      if (!this.projectId) {
+        return;
+      }
+      if (hasLicense()) {
+        this.$get('/project/version/enable/' + this.projectId, response => {
+          this.versionEnable = response.data;
+          this.loading = false;
+          this.$nextTick(() => {
+            this.loading = true;
+          });
+        });
+      }
     },
     refresh(data) {
       this.initTableData();
