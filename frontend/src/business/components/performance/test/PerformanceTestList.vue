@@ -39,6 +39,7 @@
           <el-table-column
             :label="$t('project.version.name')"
             :filters="versionFilters"
+            column-key="versionId"
             min-width="100px"
             prop="versionId">
             <template v-slot:default="scope">
@@ -295,8 +296,8 @@ export default {
       }
     },
     changeVersion(value) {
-      this.currentVersion = value;
-      this.condition.versionId = value;
+      this.currentVersion = value || null;
+      this.condition.versionId = value || null;
       this.refresh();
     },
     refresh(data) {

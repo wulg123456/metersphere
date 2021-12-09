@@ -150,6 +150,12 @@
                                     #{value}
                                 </foreach>
                             </when>
+                            <when test="key=='version_id'">
+                                and load_test.version_id in
+                                <foreach collection="values" item="value" separator="," open="(" close=")">
+                                    #{value}
+                                </foreach>
+                            </when>
                         </choose>
                     </if>
                 </foreach>
