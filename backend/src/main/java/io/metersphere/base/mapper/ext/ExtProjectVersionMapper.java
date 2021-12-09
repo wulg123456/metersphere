@@ -11,7 +11,7 @@ public interface ExtProjectVersionMapper {
 
     String getDefaultVersion(@Param("projectId") String projectId);
 
-    void updateLatestToFalse();
+    void updateLatestToFalse(@Param("projectId") String projectId);
 
     boolean isVersionEnable(@Param("projectId") String projectId);
 
