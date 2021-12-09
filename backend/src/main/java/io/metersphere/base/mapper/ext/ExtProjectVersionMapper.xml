@@ -55,7 +55,7 @@
     </select>
 
     <update id="updateLatestToFalse">
-        UPDATE project_version set latest = FALSE AND project_id = #{projectId}
+        UPDATE project_version set latest = FALSE where project_id = #{projectId}
     </update>
 
     <select id="isVersionEnable" resultType="boolean">
