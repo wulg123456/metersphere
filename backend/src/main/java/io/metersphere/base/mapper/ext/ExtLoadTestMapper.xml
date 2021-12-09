@@ -173,13 +173,10 @@
                 FROM load_test tmp
                 JOIN project_version ON tmp.project_id = project_version.project_id AND
                 tmp.version_id = project_version.id
-                WHERE ref_id = load_test.ref_id AND
-                (SELECT COUNT(1)
-                FROM load_test tmp2
-                JOIN project_version p1 ON tmp2.project_id = p1.project_id AND
-                tmp2.version_id = p1.id
-                WHERE tmp2.ref_id = tmp.ref_id AND p1.latest = TRUE) = 0
-                ORDER BY project_version.create_time DESC
+                WHERE ref_id = load_test.ref_id
+                GROUP BY ref_id
+                HAVING MAX(latest) = 0
+                ORDER BY MAX(project_version.create_time) DESC
                 LIMIT 1)
                 )
             </if>
