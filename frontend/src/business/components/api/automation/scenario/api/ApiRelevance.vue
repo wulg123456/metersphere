@@ -161,7 +161,7 @@ export default {
       this.isApiListEnable = data;
     },
     currentVersionChange(currentVersion) {
-      this.currentVersion = currentVersion;
+      this.currentVersion = currentVersion || null;
     },
     nodeChange(node, nodeIds, pNodes) {
       this.selectNodeIds = nodeIds;

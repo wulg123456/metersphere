@@ -408,6 +408,7 @@ export default {
   },
   props: {
     currentProtocol: String,
+    currentVersion: String,
     apiDefinitionId: String,
     selectNodeIds: Array,
     activeDom: String,
@@ -444,7 +445,8 @@ export default {
       this.operators = this.simpleOperators;
       this.buttons = this.simpleButtons;
     }
-
+    // 切换tab之后版本查询
+    this.condition.versionId = this.currentVersion;
     this.initTable();
     // 通知过来的数据跳转到编辑
     if (this.$route.query.caseId) {
@@ -465,6 +467,10 @@ export default {
       this.selectAll = false;
       this.unSelection = [];
       this.selectDataCounts = 0;
+      this.initTable();
+    },
+    currentVersion() {
+      this.condition.versionId = this.currentVersion;
       this.initTable();
     },
     trashEnable() {

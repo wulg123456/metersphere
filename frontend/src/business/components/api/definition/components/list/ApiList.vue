@@ -418,6 +418,7 @@ export default {
   },
   props: {
     currentProtocol: String,
+    currentVersion: String,
     selectNodeIds: Array,
     isSelectThisWeek: String,
     activeDom: String,
@@ -478,7 +479,8 @@ export default {
       this.condition.filters = {status: ["Prepare", "Underway", "Completed"]};
     }
     this.condition.orders = getLastTableSortField(this.tableHeaderKey);
-
+    // 切换tab之后版本查询
+    this.condition.versionId = this.currentVersion;
     this.initTable();
     this.getMaintainerOptions();
     this.getVersionOptions();
@@ -506,6 +508,10 @@ export default {
       initCondition(this.condition, false);
       this.closeCaseModel();
       this.initTable(true);
+    },
+    currentVersion() {
+      this.condition.versionId = this.currentVersion;
+      this.initTable();
     },
     trashEnable() {
       if (this.trashEnable) {

@@ -93,7 +93,7 @@ export default {
     isTestPlan: Boolean,
   },
   created() {
-    this.condition.versionId = this.currentVersion || null;
+    this.condition.versionId = this.currentVersion;
     this.initTable();
   },
   watch: {
@@ -107,7 +107,7 @@ export default {
       this.initTable();
     },
     currentVersion() {
-      this.condition.versionId = this.currentVersion || null;
+      this.condition.versionId = this.currentVersion;
       this.initTable();
     }
   },

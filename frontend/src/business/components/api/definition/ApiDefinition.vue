@@ -113,6 +113,7 @@
                 :module-tree="nodeTree"
                 :module-options="moduleOptions"
                 :current-protocol="currentProtocol"
+                :current-version="currentVersion"
                 :visible="visible"
                 :currentRow="currentRow"
                 :select-node-ids="selectNodeIds"
@@ -135,6 +136,7 @@
               <api-case-simple-list
                 v-if="activeDom==='middle'"
                 :current-protocol="currentProtocol"
+                :current-version="currentVersion"
                 :visible="visible"
                 :currentRow="currentRow"
                 :select-node-ids="selectNodeIds"
@@ -822,23 +824,7 @@ export default {
       this.initApiTableOpretion = param;
     },
     changeVersion(currentVersion) {
-      if (this.$refs.caseList && this.$refs.caseList[0]) {
-        this.$refs.caseList[0].condition.versionId = currentVersion || null;
-      }
-      if (this.$refs.trashApiList) {
-        this.$refs.trashApiList.condition.versionId = currentVersion || null;
-      }
-      if (this.$refs.trashCaseList) {
-        this.$refs.trashCaseList.condition.versionId = currentVersion || null;
-      }
-      if (this.$refs.apiDefList && this.$refs.apiDefList[0]) {
-        this.$refs.apiDefList[0].condition.versionId = currentVersion || null;
-      }
-      if (this.$refs.documentsPage && this.$refs.documentsPage[0]) {
-        this.$refs.documentsPage[0].condition.versionId = currentVersion || null;
-      }
       this.currentVersion = currentVersion || null;
-      this.refresh();
     }
   }
 };
