@@ -11,6 +11,7 @@
       <api-table-list
         :table-data="tableData"
         :version-filters="versionFilters"
+        :project-id="projectId"
         :condition="condition"
         :select-node-ids="selectNodeIds"
         :result="result"

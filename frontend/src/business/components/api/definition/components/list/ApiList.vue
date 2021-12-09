@@ -484,6 +484,8 @@ export default {
     this.initTable();
     this.getMaintainerOptions();
     this.getVersionOptions();
+    this.checkVersionEnable();
+
 
     // 通知过来的数据跳转到编辑
     if (this.$route.query.resourceId) {
@@ -868,6 +870,18 @@ export default {
         return false;
       }
     },
+    checkVersionEnable() {
+      if (!this.projectId) {
+        return;
+      }
+      if (hasLicense()) {
+        this.$get('/project/version/enable/' + this.projectId, response => {
+          if (!response.data) {
+            this.fields = this.fields.filter(f => f.id !== 'versionId');
+          }
+        });
+      }
+    }
   },
 };
 </script>

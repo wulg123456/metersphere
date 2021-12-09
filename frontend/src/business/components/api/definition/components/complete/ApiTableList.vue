@@ -68,6 +68,7 @@
       </ms-table-column>
 
       <ms-table-column
+        v-if="versionEnable"
         :label="$t('project.version.name')"
         :filters="versionFilters"
         min-width="100px"
@@ -119,6 +120,7 @@ import MsTableAdvSearchBar from "@/business/components/common/components/search/
 import {getProtocolFilter} from "@/business/components/api/definition/api-definition";
 import {getProjectMember} from "@/network/user";
 import TableSelectCountBar from "@/business/components/api/automation/scenario/api/TableSelectCountBar";
+import {hasLicense} from "@/common/js/utils";
 
 export default {
   name: "ApiTableList",
@@ -156,10 +158,12 @@ export default {
       userFilters: [],
       currentPage: 1,
       pageSize: 10,
+      versionEnable: false,
     };
   },
   props: {
     currentProtocol: String,
+    projectId: String,
     selectNodeIds: Array,
     result: Object,
     tableData: Array,
@@ -178,10 +182,14 @@ export default {
       this.userFilters = data;
     });
     this.getProtocolFilter();
+    this.checkVersionEnable();
   },
   watch: {
     currentProtocol() {
       this.getProtocolFilter();
+    },
+    projectId() {
+      this.checkVersionEnable();
     }
   },
   mounted() {
@@ -221,6 +229,16 @@ export default {
         this.$refs.apitable.clear();
       }
     },
+    checkVersionEnable() {
+      if (!this.projectId) {
+        return;
+      }
+      if (hasLicense()) {
+        this.$get('/project/version/enable/' + this.projectId, response => {
+          this.versionEnable = response.data;
+        });
+      }
+    }
   },
 };
 </script>

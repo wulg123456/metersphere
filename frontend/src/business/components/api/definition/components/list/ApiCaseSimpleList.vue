@@ -455,6 +455,7 @@ export default {
       });
     }
     this.getVersionOptions();
+    this.checkVersionEnable();
   },
   watch: {
     selectNodeIds() {
@@ -1166,6 +1167,18 @@ export default {
         });
       }
     },
+    checkVersionEnable() {
+      if (!this.projectId) {
+        return;
+      }
+      if (hasLicense()) {
+        this.$get('/project/version/enable/' + this.projectId, response => {
+          if (!response.data) {
+            this.fields = this.fields.filter(f => f.id !== 'versionId');
+          }
+        });
+      }
+    }
   },
 };
 </script>

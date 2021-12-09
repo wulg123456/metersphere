@@ -589,6 +589,13 @@ export default {
     this.search();
     this.getPrincipalOptions([]);
     this.getVersionOptions();
+
+    if (this.isRelate) {
+      this.checkVersionEnable(this.selectProjectId);
+    } else {
+      this.checkVersionEnable(this.projectId);
+    }
+
     // 通知过来的数据跳转到编辑
     if (this.$route.query.resourceId) {
       this.$get('/api/automation/get/' + this.$route.query.resourceId, (response) => {
@@ -622,7 +629,7 @@ export default {
     batchReportId() {
       this.result.loading = true;
       this.getReport();
-    }
+    },
   },
   computed: {
     isNotRunning() {
@@ -801,6 +808,18 @@ export default {
           this.versionFilters = response.data.map(u => {
             return {text: u.name, value: u.id};
           });
+        });
+      }
+    },
+    checkVersionEnable(projectId) {
+      if (!projectId) {
+        return;
+      }
+      if (hasLicense()) {
+        this.$get('/project/version/enable/' + projectId, response => {
+          if (!response.data) {
+            this.fields = this.fields.filter(f => f.id !== 'versionId');
+          }
         });
       }
     },

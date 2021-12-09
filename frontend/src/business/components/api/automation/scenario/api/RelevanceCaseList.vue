@@ -58,6 +58,7 @@
         </ms-table-column>
 
         <ms-table-column
+          v-if="versionEnable"
           :label="$t('project.version.name')"
           :filters="versionFilters"
           min-width="100px"
@@ -110,6 +111,7 @@ import TableSelectCountBar from "./TableSelectCountBar";
 import {_filter, _sort, buildBatchParam} from "@/common/js/tableUtils";
 import MsTableAdvSearchBar from "@/business/components/common/components/search/MsTableAdvSearchBar";
 import {TEST_PLAN_RELEVANCE_API_CASE_CONFIGS} from "@/business/components/common/components/search/search-components";
+import {hasLicense} from "@/common/js/utils";
 
 export default {
   name: "RelevanceCaseList",
@@ -155,7 +157,8 @@ export default {
       currentPage: 1,
       pageSize: 10,
       total: 0,
-      environmentId: ""
+      environmentId: "",
+      versionEnable: false,
     };
   },
   props: {
@@ -186,6 +189,7 @@ export default {
   created() {
     this.condition.versionId = this.currentVersion;
     this.initTable();
+    this.checkVersionEnable();
   },
   watch: {
     selectNodeIds() {
@@ -196,6 +200,7 @@ export default {
     },
     projectId() {
       this.initTable();
+      this.checkVersionEnable();
     },
     currentVersion() {
       this.condition.versionId = this.currentVersion;
@@ -313,6 +318,16 @@ export default {
       }
       param.ids = Array.from(sampleSelectRows).map(row => row.id);
       return param;
+    },
+    checkVersionEnable() {
+      if (!this.projectId) {
+        return;
+      }
+      if (hasLicense()) {
+        this.$get('/project/version/enable/' + this.projectId, response => {
+          this.versionEnable = response.data;
+        });
+      }
     }
   },
 };
