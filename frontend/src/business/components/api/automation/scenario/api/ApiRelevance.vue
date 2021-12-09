@@ -25,7 +25,8 @@
       @isApiListEnableChange="isApiListEnableChange"
       ref="apiList">
       <template v-slot:version>
-        <version-select v-xpack :project-id="projectId" @changeVersion="currentVersionChange"/>
+        <version-select v-xpack :project-id="projectId" :default-version="currentVersion"
+                        @changeVersion="currentVersionChange"/>
       </template>
     </scenario-relevance-api-list>
 
@@ -40,7 +41,8 @@
       @isApiListEnableChange="isApiListEnableChange"
       ref="apiCaseList">
       <template v-slot:version>
-        <version-select v-xpack :project-id="projectId" @changeVersion="currentVersionChange"/>
+        <version-select v-xpack :project-id="projectId" :default-version="currentVersion"
+                        @changeVersion="currentVersionChange"/>
       </template>
     </scenario-relevance-case-list>
 
@@ -65,7 +67,6 @@ import MsMainContainer from "../../../../common/components/MsMainContainer";
 import ScenarioRelevanceApiList from "./RelevanceApiList";
 import RelevanceDialog from "../../../../track/plan/view/comonents/base/RelevanceDialog";
 import TestCaseRelevanceBase from "@/business/components/track/plan/view/comonents/base/TestCaseRelevanceBase";
-import {getCurrentProjectID, hasLicense} from "@/common/js/utils";
 
 const requireComponent = require.context('@/business/components/xpack/', true, /\.vue$/);
 const VersionSelect = requireComponent.keys().length > 0 ? requireComponent("./version/VersionSelect.vue") : {};
@@ -189,5 +190,8 @@ export default {
 <style scoped>
 /deep/ .filter-input {
   width: 140px !important;
+}
+.version-select {
+  padding-left: 10px;
 }
 </style>

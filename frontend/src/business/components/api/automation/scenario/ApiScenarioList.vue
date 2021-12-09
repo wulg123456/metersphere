@@ -1301,7 +1301,7 @@ export default {
 
 .search-input {
   float: right;
-  width: 200px;
+  width: 250px;
 }
 
 .adv-search-bar {

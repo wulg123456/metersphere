@@ -875,4 +875,8 @@ export default {
   max-width: 100%;
   padding-right: 100%;
 }
+
+.version-select {
+  padding-left: 10px;
+}
 </style>
