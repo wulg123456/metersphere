@@ -1,11 +1,12 @@
 <template>
-  <div>
-    <div>
-      <el-link type="primary" @click="open" style="float: right;margin-top: 5px">{{ $t('commons.adv_search.title') }}
-      </el-link>
+  <span>
+    <span>
       <el-input :placeholder="$t('commons.search_by_id_name_tag_path')" @blur="search" class="search-input" size="small"
                 @keyup.enter.native="enterSearch"
                 v-model="condition.name" ref="inputVal"/>
+      <el-link type="primary" @click="open" style="float: right;margin-top: 5px;padding-right: 10px">
+        {{ $t('commons.adv_search.title') }}
+      </el-link>
 
       <ms-table
         :data="tableData" :select-node-ids="selectNodeIds" :condition="condition" :page-size="pageSize"
@@ -194,7 +195,7 @@
       </ms-table>
       <ms-table-pagination :change="initTable" :current-page.sync="currentPage" :page-size.sync="pageSize"
                            :total="total"/>
-    </div>
+    </span>
     <ms-api-case-list @refresh="initTable" @showExecResult="showExecResult" :currentApi="selectApi" ref="caseList"/>
     <!--批量编辑-->
     <ms-batch-edit ref="batchEdit" @batchEdit="batchEdit" :data-count="$refs.table ? $refs.table.selectDataCounts : 0"
@@ -205,7 +206,7 @@
 
     <relationship-graph-drawer :graph-data="graphData" ref="relationshipGraph"/>
 
-  </div>
+  </span>
 
 </template>
 
@@ -410,7 +411,7 @@ export default {
       currentPage: 1,
       pageSize: 10,
       total: 0,
-      screenHeight: 'calc(100vh - 258px)',//屏幕高度,
+      screenHeight: 'calc(100vh - 220px)',//屏幕高度,
       environmentId: undefined,
       selectDataCounts: 0,
       projectName: "",
@@ -904,7 +905,6 @@ export default {
 .search-input {
   float: right;
   width: 300px;
-  margin-right: 10px;
 }
 
 .el-tag {
