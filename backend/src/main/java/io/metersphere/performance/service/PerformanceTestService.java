@@ -175,9 +175,7 @@ public class PerformanceTestService {
 
     public LoadTest save(SaveTestPlanRequest request, List<MultipartFile> files) {
         checkQuota(request, true);
-        if (StringUtils.isEmpty(request.getVersionId())) {
-            request.setVersionId(extProjectVersionMapper.getDefaultVersion(request.getProjectId()));
-        }
+
         LoadTestWithBLOBs loadTest = saveLoadTest(request);
 
         List<FileMetadata> importFiles = request.getUpdatedFileList();
@@ -242,6 +240,9 @@ public class PerformanceTestService {
     }
 
     private void checkExist(TestPlanRequest request) {
+        if (StringUtils.isEmpty(request.getVersionId())) {
+            request.setVersionId(extProjectVersionMapper.getDefaultVersion(request.getProjectId()));
+        }
         if (request.getName() != null) {
             LoadTestExample example = new LoadTestExample();
             LoadTestExample.Criteria criteria = example.createCriteria();

@@ -272,9 +272,6 @@ public class ApiDefinitionService {
         if (StringUtils.equals(request.getProtocol(), "DUBBO")) {
             request.setMethod("dubbo://");
         }
-        if (StringUtils.isEmpty(request.getVersionId())) {
-            request.setVersionId(extProjectVersionMapper.getDefaultVersion(request.getProjectId()));
-        }
         ApiDefinitionWithBLOBs returnModel = createTest(request);
         FileUtils.createBodyFiles(request.getRequest().getId(), bodyFiles);
         return returnModel;
@@ -449,6 +446,9 @@ public class ApiDefinitionService {
     }
 
     private void checkNameExist(SaveApiDefinitionRequest request) {
+        if (StringUtils.isEmpty(request.getVersionId())) {
+            request.setVersionId(extProjectVersionMapper.getDefaultVersion(request.getProjectId()));
+        }
         ApiDefinitionExample example = new ApiDefinitionExample();
         if (StringUtils.isNotEmpty(request.getProtocol()) && request.getProtocol().equals(RequestType.HTTP)) {
             ApiDefinitionExample.Criteria criteria = example.createCriteria();

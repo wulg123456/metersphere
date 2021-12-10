@@ -727,8 +727,16 @@ public class ApiAutomationService {
     }
 
     private void checkNameExist(SaveApiScenarioRequest request) {
+        if (StringUtils.isEmpty(request.getVersionId())) {
+            request.setVersionId(extProjectVersionMapper.getDefaultVersion(request.getProjectId()));
+        }
+
         ApiScenarioExample example = new ApiScenarioExample();
-        example.createCriteria().andNameEqualTo(request.getName()).andProjectIdEqualTo(request.getProjectId()).andStatusNotEqualTo("Trash").andIdNotEqualTo(request.getId()).andVersionIdEqualTo(request.getVersionId());
+        example.createCriteria().andNameEqualTo(request.getName())
+                .andProjectIdEqualTo(request.getProjectId())
+                .andStatusNotEqualTo("Trash")
+                .andIdNotEqualTo(request.getId())
+                .andVersionIdEqualTo(request.getVersionId());
         if (apiScenarioMapper.countByExample(example) > 0) {
             MSException.throwException(Translator.get("automation_name_already_exists"));
         }
