@@ -649,8 +649,10 @@
     </select>
 
     <select id="selectById" resultMap="BaseResultMap">
-        select api_scenario.*, project_version.name as version_name
-        from api_scenario LEFT JOIN project_version on project_version.project_id = api_scenario.project_id and project_version.id = version_id
+        select api_scenario.*, project_version.name as version_name, project.version_enable
+        from api_scenario
+        LEFT JOIN project_version on project_version.project_id = api_scenario.project_id and project_version.id = version_id
+        LEFT JOIN project on api_scenario.project_id = project.id
         WHERE api_scenario.id = #{id}
     </select>
 </mapper>

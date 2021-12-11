@@ -247,7 +247,7 @@
         api_definition.description,api_definition.request,api_definition.response,api_definition.environment_id,
         api_definition.status, api_definition.user_id, api_definition.create_time, api_definition.update_time, project.name as
         project_name, user.name as user_name,deleteUser.name AS delete_user,api_definition.delete_time, api_definition.remark, api_definition.version_id,
-        project_version.name as version_name, api_definition.ref_id
+        project_version.name as version_name, api_definition.ref_id, project.version_enable
         from api_definition
         left join project on api_definition.project_id = project.id
         left join user on api_definition.user_id = user.id

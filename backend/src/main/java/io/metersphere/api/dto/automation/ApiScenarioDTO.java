@@ -18,6 +18,7 @@ public class ApiScenarioDTO extends ApiScenarioWithBLOBs {
     private List<String> tagNames;
     private String deleteUser;
     private String versionName;
+    private Boolean versionEnable;
 
     /**
      * 场景跨项目ID
