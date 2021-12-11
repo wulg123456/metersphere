@@ -23,6 +23,8 @@
     <result column="is_mock_tcp_open" jdbcType="BIT" property="isMockTcpOpen" />
     <result column="azure_filter_id" jdbcType="VARCHAR" property="azureFilterId" />
     <result column="version_enable" jdbcType="BIT" property="versionEnable" />
+    <result column="platform" jdbcType="VARCHAR" property="platform" />
+    <result column="third_part_template" jdbcType="BIT" property="thirdPartTemplate" />
   </resultMap>
   <sql id="Example_Where_Clause">
     <where>
@@ -86,7 +88,7 @@
     id, workspace_id, `name`, description, create_time, update_time, tapd_id, jira_key, 
     zentao_id, azure_devops_id, `repeatable`, case_template_id, issue_template_id, custom_num, 
     scenario_custom_num, create_user, system_id, mock_tcp_port, is_mock_tcp_open, azure_filter_id, 
-    version_enable
+    version_enable, platform, third_part_template
   </sql>
   <select id="selectByExample" parameterType="io.metersphere.base.domain.ProjectExample" resultMap="BaseResultMap">
     select
@@ -125,16 +127,16 @@
       azure_devops_id, `repeatable`, case_template_id, 
       issue_template_id, custom_num, scenario_custom_num, 
       create_user, system_id, mock_tcp_port, 
-      is_mock_tcp_open, azure_filter_id, version_enable
-      )
+      is_mock_tcp_open, azure_filter_id, version_enable, 
+      platform, third_part_template)
     values (#{id,jdbcType=VARCHAR}, #{workspaceId,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, 
       #{description,jdbcType=VARCHAR}, #{createTime,jdbcType=BIGINT}, #{updateTime,jdbcType=BIGINT}, 
       #{tapdId,jdbcType=VARCHAR}, #{jiraKey,jdbcType=VARCHAR}, #{zentaoId,jdbcType=VARCHAR}, 
       #{azureDevopsId,jdbcType=VARCHAR}, #{repeatable,jdbcType=BIT}, #{caseTemplateId,jdbcType=VARCHAR}, 
       #{issueTemplateId,jdbcType=VARCHAR}, #{customNum,jdbcType=BIT}, #{scenarioCustomNum,jdbcType=BIT}, 
       #{createUser,jdbcType=VARCHAR}, #{systemId,jdbcType=VARCHAR}, #{mockTcpPort,jdbcType=INTEGER}, 
-      #{isMockTcpOpen,jdbcType=BIT}, #{azureFilterId,jdbcType=VARCHAR}, #{versionEnable,jdbcType=BIT}
-      )
+      #{isMockTcpOpen,jdbcType=BIT}, #{azureFilterId,jdbcType=VARCHAR}, #{versionEnable,jdbcType=BIT}, 
+      #{platform,jdbcType=VARCHAR}, #{thirdPartTemplate,jdbcType=BIT})
   </insert>
   <insert id="insertSelective" parameterType="io.metersphere.base.domain.Project">
     insert into project
@@ -202,6 +204,12 @@
       <if test="versionEnable != null">
         version_enable,
       </if>
+      <if test="platform != null">
+        platform,
+      </if>
+      <if test="thirdPartTemplate != null">
+        third_part_template,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="id != null">
@@ -266,6 +274,12 @@
       </if>
       <if test="versionEnable != null">
         #{versionEnable,jdbcType=BIT},
+      </if>
+      <if test="platform != null">
+        #{platform,jdbcType=VARCHAR},
+      </if>
+      <if test="thirdPartTemplate != null">
+        #{thirdPartTemplate,jdbcType=BIT},
       </if>
     </trim>
   </insert>
@@ -341,6 +355,12 @@
       <if test="record.versionEnable != null">
         version_enable = #{record.versionEnable,jdbcType=BIT},
       </if>
+      <if test="record.platform != null">
+        platform = #{record.platform,jdbcType=VARCHAR},
+      </if>
+      <if test="record.thirdPartTemplate != null">
+        third_part_template = #{record.thirdPartTemplate,jdbcType=BIT},
+      </if>
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -368,7 +388,9 @@
       mock_tcp_port = #{record.mockTcpPort,jdbcType=INTEGER},
       is_mock_tcp_open = #{record.isMockTcpOpen,jdbcType=BIT},
       azure_filter_id = #{record.azureFilterId,jdbcType=VARCHAR},
-      version_enable = #{record.versionEnable,jdbcType=BIT}
+      version_enable = #{record.versionEnable,jdbcType=BIT},
+      platform = #{record.platform,jdbcType=VARCHAR},
+      third_part_template = #{record.thirdPartTemplate,jdbcType=BIT}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -436,6 +458,12 @@
       <if test="versionEnable != null">
         version_enable = #{versionEnable,jdbcType=BIT},
       </if>
+      <if test="platform != null">
+        platform = #{platform,jdbcType=VARCHAR},
+      </if>
+      <if test="thirdPartTemplate != null">
+        third_part_template = #{thirdPartTemplate,jdbcType=BIT},
+      </if>
     </set>
     where id = #{id,jdbcType=VARCHAR}
   </update>
@@ -460,7 +488,9 @@
       mock_tcp_port = #{mockTcpPort,jdbcType=INTEGER},
       is_mock_tcp_open = #{isMockTcpOpen,jdbcType=BIT},
       azure_filter_id = #{azureFilterId,jdbcType=VARCHAR},
-      version_enable = #{versionEnable,jdbcType=BIT}
+      version_enable = #{versionEnable,jdbcType=BIT},
+      platform = #{platform,jdbcType=VARCHAR},
+      third_part_template = #{thirdPartTemplate,jdbcType=BIT}
     where id = #{id,jdbcType=VARCHAR}
   </update>
 </mapper>
