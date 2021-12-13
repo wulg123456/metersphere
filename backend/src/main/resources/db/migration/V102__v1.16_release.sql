@@ -74,9 +74,9 @@ UPDATE api_definition
     INNER JOIN project_version ON project_version.project_id = api_definition.project_id
 SET version_id = project_version.id;
 
-UPDATE api_definition_exec_result
-    INNER JOIN project_version ON project_version.project_id = api_definition_exec_result.project_id
-SET version_id = project_version.id;
+# UPDATE api_definition_exec_result
+#     INNER JOIN project_version ON project_version.project_id = api_definition_exec_result.project_id
+# SET version_id = project_version.id;
 
 -- api test case
 ALTER TABLE api_test_case
