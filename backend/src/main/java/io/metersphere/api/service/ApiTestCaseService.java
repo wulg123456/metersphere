@@ -747,7 +747,7 @@ public class ApiTestCaseService {
         return ids;
     }
 
-    private ApiDefinitionExecResult addResult(String resourceId, String status, String reportId) {
+    private ApiDefinitionExecResult addResult(ApiTestCaseWithBLOBs testCase, String status, String reportId) {
         ApiDefinitionExecResult apiResult = new ApiDefinitionExecResult();
         if (StringUtils.isEmpty(reportId)) {
             apiResult.setId(UUID.randomUUID().toString());
@@ -760,10 +760,11 @@ public class ApiTestCaseService {
         apiResult.setTriggerMode(TriggerMode.BATCH.name());
         apiResult.setActuator("LOCAL");
         apiResult.setUserId(Objects.requireNonNull(SessionUtils.getUser()).getId());
-        apiResult.setResourceId(resourceId);
+        apiResult.setResourceId(testCase.getId());
         apiResult.setStartTime(System.currentTimeMillis());
         apiResult.setType(ApiRunMode.DEFINITION.name());
         apiResult.setStatus(status);
+        apiResult.setVersionId(testCase.getVersionId());
         return apiResult;
     }
 
@@ -780,7 +781,7 @@ public class ApiTestCaseService {
 
         ApiTestCaseMapper sqlSessionMapper = sqlSession.getMapper(ApiTestCaseMapper.class);
         for (ApiTestCaseWithBLOBs caseWithBLOBs : list) {
-            ApiDefinitionExecResult report = addResult(caseWithBLOBs.getId(), APITestStatus.Running.name(), null);
+            ApiDefinitionExecResult report = addResult(caseWithBLOBs, APITestStatus.Running.name(), null);
             report.setName(caseWithBLOBs.getName());
             caseWithBLOBs.setLastResultId(report.getId());
             caseWithBLOBs.setUpdateTime(System.currentTimeMillis());
@@ -827,7 +828,7 @@ public class ApiTestCaseService {
             request.setEnvironmentId(extApiTestCaseMapper.getApiCaseEnvironment(request.getCaseId()));
         }
         //提前生成报告
-        ApiDefinitionExecResult report = addResult(caseWithBLOBs.getId(), APITestStatus.Running.name(), request.getReportId());
+        ApiDefinitionExecResult report = addResult(caseWithBLOBs, APITestStatus.Running.name(), request.getReportId());
         report.setName(caseWithBLOBs.getName());
         report.setTriggerMode(ApiRunMode.API.name());
         report.setType(ApiRunMode.JENKINS.name());

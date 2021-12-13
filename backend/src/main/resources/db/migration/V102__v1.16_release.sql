@@ -55,6 +55,11 @@ ALTER TABLE api_definition
 ALTER TABLE api_definition
     ADD ref_id VARCHAR(50) NULL;
 
+ALTER TABLE api_definition_exec_result
+    ADD version_id VARCHAR(50) NULL;
+
+CREATE INDEX api_definition_exec_result_version_id_index
+    ON api_definition_exec_result(version_id);
 
 CREATE INDEX api_definition_ref_id_index
     ON api_definition (ref_id);
@@ -67,6 +72,10 @@ SET ref_id = id;
 
 UPDATE api_definition
     INNER JOIN project_version ON project_version.project_id = api_definition.project_id
+SET version_id = project_version.id;
+
+UPDATE api_definition_exec_result
+    INNER JOIN project_version ON project_version.project_id = api_definition_exec_result.project_id
 SET version_id = project_version.id;
 
 -- api test case
@@ -87,6 +96,12 @@ ALTER TABLE load_test
 ALTER TABLE load_test
     ADD ref_id VARCHAR(50) NULL;
 
+ALTER TABLE load_test_report
+    ADD version_id VARCHAR(50) NULL;
+
+CREATE INDEX load_test_report_version_id_index
+    ON load_test_report(version_id);
+
 CREATE INDEX load_test_ref_id_index
     ON load_test (ref_id);
 
@@ -100,6 +115,10 @@ UPDATE load_test
     INNER JOIN project_version ON project_version.project_id = load_test.project_id
 SET version_id = project_version.id;
 
+UPDATE load_test_report
+    INNER JOIN project_version ON project_version.project_id = load_test_report.project_id
+SET version_id = project_version.id;
+
 -- api scenario
 ALTER TABLE api_scenario
     ADD version_id VARCHAR(50) NULL;
@@ -107,6 +126,11 @@ ALTER TABLE api_scenario
 ALTER TABLE api_scenario
     ADD ref_id VARCHAR(50) NULL;
 
+ALTER TABLE api_scenario_report
+    ADD version_id VARCHAR(50) NULL;
+
+CREATE INDEX api_scenario_report_version_id_index
+    ON api_scenario_report(version_id);
 
 CREATE INDEX api_scenario_ref_id_index
     ON api_scenario (ref_id);
@@ -121,3 +145,6 @@ UPDATE api_scenario
     INNER JOIN project_version ON project_version.project_id = api_scenario.project_id
 SET version_id = project_version.id;
 
+UPDATE api_scenario_report
+    INNER JOIN project_version ON project_version.project_id = api_scenario_report.project_id
+SET version_id = project_version.id;

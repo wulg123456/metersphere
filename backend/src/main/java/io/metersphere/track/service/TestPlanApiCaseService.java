@@ -397,6 +397,7 @@ public class TestPlanApiCaseService {
         ApiTestCaseWithBLOBs caseWithBLOBs = apiTestCaseMapper.selectByPrimaryKey(key.getApiCaseId());
         if (caseWithBLOBs != null) {
             apiResult.setName(caseWithBLOBs.getName());
+            apiResult.setVersionId(caseWithBLOBs.getVersionId());
         }
         if (StringUtils.equalsIgnoreCase(request.getTriggerMode(), ApiRunMode.SCHEDULE_API_PLAN.name())) {
             apiResult.setTriggerMode(TriggerMode.SCHEDULE.name());

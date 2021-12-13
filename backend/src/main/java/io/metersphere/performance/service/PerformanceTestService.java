@@ -415,6 +415,7 @@ public class PerformanceTestService {
         testReport.setTestId(loadTest.getId());
         testReport.setName(loadTest.getName());
         testReport.setTriggerMode(request.getTriggerMode());
+        testReport.setVersionId(loadTest.getVersionId());
         if (SessionUtils.getUser() == null) {
             testReport.setUserId(loadTest.getUserId());
         } else {
