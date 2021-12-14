@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS `project_version`
     `end_time`     bigint(13)   DEFAULT NULL,
     `create_time`  bigint(13)   DEFAULT NULL,
     `create_user`  varchar(100) DEFAULT NULL,
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    KEY `project_version_project_id_index` (`project_id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
